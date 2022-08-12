@@ -1,0 +1,118 @@
+﻿using Jack.RemoteLog.WebApi.Dtos;
+using System.Runtime.InteropServices;
+using System.Text;
+
+namespace Jack.RemoteLog.WebApi.Infrastructures
+{
+    public class FileLogContentReader : ILogContentReader
+    {
+        string _folderPath;
+        public FileLogContentReader(string folerpath)
+        {
+            _folderPath = folerpath;
+        }
+
+        public unsafe LogItem[] Read(string sourceContext, long startTimeStamp, long? endTimeStamp, string keyWord)
+        {
+            if (sourceContext.Contains("\r"))
+                sourceContext = sourceContext.Replace("\r", "");
+
+            var starthour = startTimeStamp - startTimeStamp % 3600000L;
+
+            if (endTimeStamp == null)
+                endTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+            var endhour = endTimeStamp - endTimeStamp % 3600000L;
+
+            FileStream reader = null;
+            FileStream indexReader = null;
+            List<LogItem> list = new List<LogItem>();
+            var md5hash = Global.GetHash(sourceContext);
+            byte[] indexData = new byte[38];
+            byte[] header = new byte[3];
+            try
+            {
+                for (long i = starthour; i <= endhour; i += 3600000L)
+                {
+                    var filepath = $"{_folderPath}/{i}.txt";
+                    var indexFilepath = $"{_folderPath}/{i}.index.txt";
+                    if (File.Exists(filepath) == false || File.Exists(indexFilepath) == false)
+                        continue;
+
+                    reader = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    indexReader = new FileStream(indexFilepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+                  
+                    fixed (byte* indexDataPtr = indexData)
+                    {
+                        var ptr = new IntPtr(indexDataPtr);
+                        while (true)
+                        {
+                            if (indexReader.Read(indexData, 0, indexData.Length) == 0)
+                                break;
+
+                            IndexModel indexItem = Marshal.PtrToStructure<IndexModel>(ptr);
+                            if(indexItem.Time >= startTimeStamp && indexItem.Time <= endTimeStamp)
+                            {
+                                if(md5hash != null)
+                                {
+                                    //需要匹对sourceContext
+                                    if (Global.IsEquals(md5hash , indexItem.SourceContext) == false)
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                reader.Position = indexItem.Position;
+                                reader.Read(header);
+                                if (Encoding.ASCII.GetString(header) != "LOG")
+                                    throw new IOException("文件已损坏");
+
+                                byte[] data = new byte[indexItem.Length - 3];
+                                reader.Read(data);
+                                var info = Encoding.UTF8.GetString(data);
+                                var sc = info.Substring(0, info.IndexOf("\r"));
+                                var content = info.Substring(sc.Length + 2);
+
+                                if(keyWord != null)
+                                {
+                                    if (!content.Contains(keyWord))
+                                        continue;
+                                }
+
+                                list.Add(new LogItem { 
+                                    Content = content,
+                                    SourceContext = sc,
+                                    Level = (LogLevel)indexItem.Level,
+                                    Timestamp = indexItem.Time
+                                });
+                            }
+
+                            if(indexItem.Time > endTimeStamp)
+                            {
+                                return list.ToArray();
+                            }
+                        }
+                    }
+
+                    reader.Dispose();
+                    indexReader.Dispose();
+
+                    reader = null;
+                    indexReader = null;
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            finally
+            {
+                reader?.Dispose();
+                indexReader?.Dispose();
+            }
+            return list.ToArray();
+        }
+    }
+}
