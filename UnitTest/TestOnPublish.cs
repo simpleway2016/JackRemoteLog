@@ -43,7 +43,7 @@ namespace UnitTest
         public void ReadLog()
         {
             var logService = _serviceProvider.GetService<LogService>();
-            var logs = logService.ReadLogs("UnitTest", "TestContext", DateTimeOffset.FromFileTime(DateTime.Now.AddDays(-1).ToFileTime()).ToUnixTimeMilliseconds(), null, "»’");
+            var logs = logService.ReadLogs("UnitTest", null, null, DateTimeOffset.FromFileTime(DateTime.Now.AddDays(-3).ToFileTime()).ToUnixTimeMilliseconds(), null, "»’");
         }
 
         [TestMethod]

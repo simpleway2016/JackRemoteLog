@@ -7,6 +7,6 @@ namespace Jack.RemoteLog.WebApi.Domains
         string ApplicationContext { get; }
         string[] GetAllSourceContext();
         void WriteLog(WriteLogModel request);
-        LogItem[] Read(string sourceContext, long startTimeStamp, long? endTimeStamp, string keyWord);
+        LogItem[] Read(string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord);
     }
 }

@@ -12,9 +12,10 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             _folderPath = folerpath;
         }
 
-        public unsafe LogItem[] Read(string sourceContext, long startTimeStamp, long? endTimeStamp, string keyWord)
+        public unsafe LogItem[] Read(string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
         {
-            if (sourceContext.Contains("\r"))
+            var intLevel = (short)level.GetValueOrDefault();
+            if (sourceContext != null && sourceContext.Contains("\r"))
                 sourceContext = sourceContext.Replace("\r", "");
 
             var starthour = startTimeStamp - startTimeStamp % 3600000L;
@@ -58,6 +59,14 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                                 {
                                     //需要匹对sourceContext
                                     if (Global.IsEquals(md5hash , indexItem.SourceContext) == false)
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                if(level != null)
+                                {
+                                    if(intLevel != indexItem.Level)
                                     {
                                         continue;
                                     }

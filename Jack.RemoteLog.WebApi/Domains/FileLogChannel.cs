@@ -31,9 +31,9 @@ namespace Jack.RemoteLog.WebApi.Domains
             _sourceContexts.Add(request.SourceContext);
         }
 
-        public LogItem[] Read(string sourceContext, long startTimeStamp, long? endTimeStamp, string keyWord)
+        public LogItem[] Read(string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
         {
-            return _contentReader.Read(sourceContext, startTimeStamp, endTimeStamp, keyWord);
+            return _contentReader.Read(sourceContext,level, startTimeStamp, endTimeStamp, keyWord);
         }
 
         public string[] GetAllSourceContext()
