@@ -19,6 +19,9 @@ namespace Jack.RemoteLog.WebApi.Applications
         public LogChannelRoute()
         {
             var folderPath = Global.Configuration["DataPath"];
+            if (Directory.Exists(folderPath) == false)
+                Directory.CreateDirectory(folderPath);
+
             var appFolder = Directory.GetDirectories(folderPath);
             foreach( var folder in appFolder )
             {
