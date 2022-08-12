@@ -7,6 +7,13 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Version>1.0.0.0</Version>
     <Authors>Jack.T</Authors>
+    <Description>配置文件：
+  "Logging": {
+    "ServerUrl": "http://yourserver.com",
+    "LogLevel": {
+      "Default": "Debug"
+    }
+  }</Description>
   </PropertyGroup>
 
   <ItemGroup>
