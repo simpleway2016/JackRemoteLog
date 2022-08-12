@@ -22,7 +22,7 @@ namespace Jack.RemoteLog.WebApi.Controllers
         }
 
         [HttpGet]
-        public LogItem[] ReadLogs(string applicationContext, string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
+        public LogItem[] ReadLogs(string applicationContext, string? sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string? keyWord)
         {
             return _logService.ReadLogs(applicationContext,sourceContext,level, startTimeStamp,endTimeStamp,keyWord);
         }
