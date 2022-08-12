@@ -3,6 +3,11 @@ using Jack.RemoteLog.WebApi.Applications;
 using Quartz.Impl;
 using Quartz;
 using Jack.RemoteLog.WebApi.AutoMissions;
+using Microsoft.Extensions.FileProviders;
+using Quartz.Impl.AdoJobStore.Common;
+using System.IO;
+
+Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,13 +18,33 @@ builder.Services.AddControllers();
 builder.Services.AddSingleton<LogChannelRoute>();
 builder.Services.AddSingleton<LogService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("abc", builder =>
+    {
+        //App:CorsOrigins in appsettings.json can contain more than one address with splitted by comma.
+        builder
+          .SetIsOriginAllowed(_ => true)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+
+    });
+});
+
 var app = builder.Build();
 
 Global.ServiceProvider = app.Services;
 // Configure the HTTP request pipeline.
 
-app.UseAuthorization();
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(AppDomain.CurrentDomain.BaseDirectory + "wwwroot"),
+});
+
+app.UseAuthorization();
+app.UseCors("abc");
 app.MapControllers();
 
 ISchedulerFactory sf = new StdSchedulerFactory();
