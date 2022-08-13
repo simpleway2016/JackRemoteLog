@@ -13,17 +13,16 @@ namespace Jack.RemoteLog
 {
     public static class Extens
     {
-
-        static ILoggingBuilder LoggingBuilder;
         static void ConfigurationChangeCallback(object p)
         {
-            Global.Configuration.GetReloadToken().RegisterChangeCallback(ConfigurationChangeCallback, null);
+            ILoggingBuilder loggingBuilder = (ILoggingBuilder)p;
+            Global.Configuration.GetReloadToken().RegisterChangeCallback(ConfigurationChangeCallback, p);
 
             string minimumLevel = Global.Configuration["Logging:LogLevel:Default"];
             if (Enum.TryParse<LogLevel>(minimumLevel , out LogLevel level))
             {
                 Global.MinimumLevel = level;
-                LoggingBuilder.SetMinimumLevel(Global.MinimumLevel);
+                loggingBuilder.SetMinimumLevel(Global.MinimumLevel);
             }
             else
             {
@@ -40,8 +39,7 @@ namespace Jack.RemoteLog
         {
             Global.Configuration = configuration;
 
-            LoggingBuilder = builder;
-            ConfigurationChangeCallback(null);
+            ConfigurationChangeCallback(builder);
 
             builder.AddProvider(new AsyncLoggerProvider(applicationContext));
         }
