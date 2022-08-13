@@ -20,8 +20,15 @@ namespace Jack.RemoteLog
             Global.Configuration.GetReloadToken().RegisterChangeCallback(ConfigurationChangeCallback, null);
 
             string minimumLevel = Global.Configuration["Logging:LogLevel:Default"];
-            Global.MinimumLevel = (LogLevel)Enum.Parse<LogLevel>(minimumLevel);
-            LoggingBuilder.SetMinimumLevel(Global.MinimumLevel);
+            if (Enum.TryParse<LogLevel>(minimumLevel , out LogLevel level))
+            {
+                Global.MinimumLevel = level;
+                LoggingBuilder.SetMinimumLevel(Global.MinimumLevel);
+            }
+            else
+            {
+                throw new Exception("配置信息Logging:LogLevel:Default无法转换为LogLevel");
+            }
         }
 
         /// <summary>

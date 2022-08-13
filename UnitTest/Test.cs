@@ -27,7 +27,7 @@ namespace UnitTest
 
             _services.AddLogging(builder =>
             {
-                builder.UseJackRemoteLogger(Global.Configuration, "ÎÒµÄapp");
+                builder.UseJackRemoteLogger(Global.Configuration, "MyApplicationContext");
             });
 
             Global.ServiceProvider = _serviceProvider = _services.BuildServiceProvider();
