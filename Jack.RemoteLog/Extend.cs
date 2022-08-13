@@ -13,22 +13,22 @@ namespace Jack.RemoteLog
 {
     public static class Extens
     {
-        static void ConfigurationChangeCallback(object p)
-        {
-            ILoggingBuilder loggingBuilder = (ILoggingBuilder)p;
-            Global.Configuration.GetReloadToken().RegisterChangeCallback(ConfigurationChangeCallback, p);
+        //static void ConfigurationChangeCallback(object p)
+        //{
+        //    ILoggingBuilder loggingBuilder = (ILoggingBuilder)p;
+        //    Global.Configuration.GetReloadToken().RegisterChangeCallback(ConfigurationChangeCallback, p);
 
-            string minimumLevel = Global.Configuration["Logging:LogLevel:Default"];
-            if (Enum.TryParse<LogLevel>(minimumLevel , out LogLevel level))
-            {
-                Global.MinimumLevel = level;
-                loggingBuilder.SetMinimumLevel(Global.MinimumLevel);
-            }
-            else
-            {
-                throw new Exception("配置信息Logging:LogLevel:Default无法转换为LogLevel");
-            }
-        }
+        //    string minimumLevel = Global.Configuration["Logging:LogLevel:Default"];
+        //    if (Enum.TryParse<LogLevel>(minimumLevel , out LogLevel level))
+        //    {
+        //        Global.MinimumLevel = level;
+        //        loggingBuilder.SetMinimumLevel(Global.MinimumLevel);
+        //    }
+        //    else
+        //    {
+        //        throw new Exception("配置信息Logging:LogLevel:Default无法转换为LogLevel");
+        //    }
+        //}
 
         /// <summary>
         /// 使用Jack.RemoteLog异步远程日志
@@ -39,7 +39,7 @@ namespace Jack.RemoteLog
         {
             Global.Configuration = configuration;
 
-            ConfigurationChangeCallback(builder);
+            //ConfigurationChangeCallback(builder);
 
             builder.AddProvider(new AsyncLoggerProvider(applicationContext));
         }
@@ -49,15 +49,15 @@ namespace Jack.RemoteLog
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static IHostBuilder UseJackRemoteLogger(this IHostBuilder builder, IConfiguration configuration, string applicationContext)
-        {
-            Global.Configuration = configuration;
-            builder.ConfigureServices((cx,services) =>
-            {
-                services.AddSingleton<ILoggerFactory>(new AsyncLoggerFactory(applicationContext));
-            });
-            return builder;
-        }
+        //public static IHostBuilder UseJackRemoteLogger(this IHostBuilder builder, IConfiguration configuration, string applicationContext)
+        //{
+        //    Global.Configuration = configuration;
+        //    builder.ConfigureServices((cx,services) =>
+        //    {
+        //        services.AddSingleton<ILoggerFactory>(new AsyncLoggerFactory(applicationContext));
+        //    });
+        //    return builder;
+        //}
 
     }
 }

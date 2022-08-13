@@ -68,12 +68,13 @@ namespace Jack.RemoteLog
 
         public bool IsEnabled(LogLevel logLevel)
         {
+            return true;
             return logLevel >= Global.MinimumLevel;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            if (IsEnabled(logLevel))
+            //if (IsEnabled(logLevel))
             {
                 Queue.Enqueue(new LogItem
                 {

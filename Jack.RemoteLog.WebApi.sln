@@ -5,9 +5,11 @@ VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jack.RemoteLog.WebApi", "Jack.RemoteLog.WebApi\Jack.RemoteLog.WebApi.csproj", "{199FFFEB-F156-457A-AA2E-4044E9CAAFCB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTest\UnitTest.csproj", "{B8AAC8BF-2085-448C-9D2B-6C9814C7F42B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTest", "UnitTest\UnitTest.csproj", "{B8AAC8BF-2085-448C-9D2B-6C9814C7F42B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jack.RemoteLog", "Jack.RemoteLog\Jack.RemoteLog.csproj", "{843FE690-5543-4F45-BFDD-B3C3196D619D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jack.RemoteLog", "Jack.RemoteLog\Jack.RemoteLog.csproj", "{843FE690-5543-4F45-BFDD-B3C3196D619D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWebApi", "TestWebApi\TestWebApi.csproj", "{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{843FE690-5543-4F45-BFDD-B3C3196D619D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{843FE690-5543-4F45-BFDD-B3C3196D619D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{843FE690-5543-4F45-BFDD-B3C3196D619D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
