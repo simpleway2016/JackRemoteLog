@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Jack.RemoteLog.WebApi.Infrastructures
 {
-    public class FileLogContentWriter : ILogContentWriter,IDisposable
+    public class FileLogContentWriter : ILogContentWriter
     {
         bool _disposed;
         long _curTimeStamp;
@@ -29,10 +29,11 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                 if (_queue.TryDequeue(out WriteLogModel model))
                 {
                     writeToFile(model);
-                    Thread.Sleep(1);
+                   //Thread.Sleep(1);
                 }
                 else
                 {
+                    flush();
                     _event.WaitOne();
                 }
             }
@@ -48,6 +49,15 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
         {
             _queue.Enqueue(writeLogModel);
             _event.Set();
+        }
+
+        void flush()
+        {
+            if (_Writer != null && _indexWriter != null)
+            {
+                _Writer.Flush();
+                _indexWriter.Flush();
+            }
         }
 
         unsafe void writeToFile(WriteLogModel writeLogModel)
@@ -74,7 +84,6 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             var bs = Encoding.UTF8.GetBytes(writeContent);
             _Writer.Write(HEADER);
             _Writer.Write(bs);
-            _Writer.Flush();
             var len = bs.Length + HEADER.Length;
 
             bs = new byte[38];
@@ -92,13 +101,18 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             }
 
             _indexWriter.Write(bs);
-            _indexWriter.Flush();
         }
 
         public void Dispose()
         {
+            if(_indexWriter == null)
+            {
+                _disposed = true;
+                return;
+            }
             _disposed = true;
-
+            while (_indexWriter != null)
+                Thread.Sleep(10);
            
         }
     }

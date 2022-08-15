@@ -2,7 +2,7 @@
 
 namespace Jack.RemoteLog.WebApi.Infrastructures
 {
-    public interface ILogContentWriter
+    public interface ILogContentWriter:IDisposable
     {
         void Write(WriteLogModel writeLogModel);
     }

@@ -12,6 +12,10 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             _folderPath = folerpath;
         }
 
+        public void Dispose()
+        {
+        }
+
         public unsafe LogItem[] Read(string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
         {
             var intLevel = (short)level.GetValueOrDefault();

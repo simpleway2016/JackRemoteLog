@@ -2,7 +2,7 @@
 
 namespace Jack.RemoteLog.WebApi.Domains
 {
-    public interface ILogChannel
+    public interface ILogChannel: IDisposable
     {
         string ApplicationContext { get; }
         string[] GetAllSourceContext();

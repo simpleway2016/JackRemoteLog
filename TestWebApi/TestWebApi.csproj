@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Jack.RemoteLog\Jack.RemoteLog.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>

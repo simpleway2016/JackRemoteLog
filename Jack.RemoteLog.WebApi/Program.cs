@@ -58,5 +58,7 @@ ITrigger trigger = TriggerBuilder.Create().StartAt(DateTime.Now.AddSeconds(5)).W
 scheduler.ScheduleJob(job, trigger);
 scheduler.Start();
 
+var logchannelRoute = app.Services.GetService<LogChannelRoute>();
 
 app.Run();
+logchannelRoute.Dispose();

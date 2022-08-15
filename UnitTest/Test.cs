@@ -48,15 +48,18 @@ namespace UnitTest
             var logService = _serviceProvider.GetService<LogService>();
             for (int i = 0; i < 1000000; i++)
             {
-                Thread.Sleep(1);
+               
                 logService.WriteLog(new Jack.RemoteLog.WebApi.Dtos.WriteLogModel
                 {
                     ApplicationContext = "UnitTest",
                     SourceContext = "test",
-                    Content = "测试\r\n日志",
+                    Content = "Exchange:Exchange.BlockScan 收到BlockScan信息：{\"BlockNumber\":43325451,\"Txid\":\"04b394121551767dd7237d8fcaf84eab31f102f3bd03122b94bf784581217ec5\",\"Amount\":99999.0,\"Time\":\"1970-01-01T00:00:00+00:00\",\"Confirmations\":3,\"Valid\":true,\"PropertyId\":\"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\",\"CoinType\":202,\"TronTransactionType\":\"TriggerSmartContract\",\"ContractRet\":\"SUCCESS\",\"Fee\":0.0,\"SenderAddress\":\"TBA6CypYJizwA9XdC7Ubgc5F1bxrQ7SqPt\",\"ReceivedAddress\":\"TVKCgFfuuzu11idqBjqMoSUDvmVQYnJWwY\",\"Coin\":\"USDT\"}",
                     Level = Microsoft.Extensions.Logging.LogLevel.Debug,
                     Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds()
                 });
+
+                if(i % 1000 == 0)
+                    Thread.Sleep(1);
             }
         }
     }

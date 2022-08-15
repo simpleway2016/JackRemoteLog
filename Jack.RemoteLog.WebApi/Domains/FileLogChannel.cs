@@ -40,5 +40,14 @@ namespace Jack.RemoteLog.WebApi.Domains
         {
             return _sourceContexts.ToArray();
         }
+
+        public void Dispose()
+        {
+            _contentWriter?.Dispose();
+            _contentReader?.Dispose();
+
+            _contentWriter = null;
+            _contentReader = null;
+        }
     }
 }

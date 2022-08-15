@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace Jack.RemoteLog.WebApi.Applications
 {
-    public class LogChannelRoute
+    public class LogChannelRoute : IDisposable
     {
         ConcurrentDictionary<string, ILogChannel> _dict = new ConcurrentDictionary<string, ILogChannel>();
         public ILogChannel this[string applicationContext]
@@ -35,6 +35,16 @@ namespace Jack.RemoteLog.WebApi.Applications
         public string[] GetApplications()
         {
             return _dict.Keys.ToArray();
+        }
+
+        public void Dispose()
+        {
+            var channels = _dict.Values.ToArray();
+            _dict.Clear();
+            foreach( var channel in channels )
+            {
+                channel.Dispose();
+            }
         }
     }
 }
