@@ -160,6 +160,7 @@
         .logpanel {
             overflow-x: hidden;
             overflow-y: auto;
+            word-break: break-all;
         }
 
         .logitem {
@@ -217,7 +218,7 @@
 
 <body>
     <div class="main display-flex flex-direction-row" @click.stop="nothing">
-        <div class="leftmenu">
+        <div class="leftmenu flex-shrink-0">
             <div class="lefttop">AppContextNames</div>
             <div class="lefttitle display-flex flex-direction-row align-items-center" :class="{actived:appContext==selectedAppContext}" @click="selectedAppContext=appContext" v-for="appContext,index in appContexts">
                 <div>{{appContext}}</div>
@@ -284,7 +285,6 @@
                 model.selectedSourceContext = undefined;
                 model.startTime = new Date(Date.now() - 10 * 60000).toLocaleString();
                 loadSourceContext();
-                loadData();
             }
         },
         updated: function (ee) {

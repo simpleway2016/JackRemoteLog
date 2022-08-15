@@ -48,7 +48,7 @@ namespace UnitTest
             var logService = _serviceProvider.GetService<LogService>();
             for (int i = 0; i < 1000000; i++)
             {
-                Thread.Sleep(10);
+                Thread.Sleep(1);
                 logService.WriteLog(new Jack.RemoteLog.WebApi.Dtos.WriteLogModel
                 {
                     ApplicationContext = "UnitTest",
