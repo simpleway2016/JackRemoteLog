@@ -29,7 +29,6 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                 if (_queue.TryDequeue(out WriteLogModel model))
                 {
                     writeToFile(model);
-                   //Thread.Sleep(1);
                 }
                 else
                 {
