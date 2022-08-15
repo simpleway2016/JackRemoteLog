@@ -230,7 +230,7 @@
             </div>
         </div>
         <div class="flex-1 itemContainer display-flex flex-direction-column">
-            <div class="flex-shrink-0">
+            <div class="flex-shrink-0" v-show="selectedAppContext">
                 <div style="text-align:right;">
                     <input placeholder="关键字" v-model="keyword"/>
                     <select v-model="selectedSourceContext">
@@ -239,7 +239,7 @@
                     <button @click="search" :class="{loading:isBusy}" >过滤</button>
                 </div>
             </div>
-            <div class="flex-shrink-0">
+            <div class="flex-shrink-0" v-show="selectedAppContext">
                 <input placeholder="开始时间" v-model="startTime" />
                 <input placeholder="结束时间" v-model="endTime" />&nbsp;&nbsp;
                 <span v-if="isBusy">正在加载...</span>
