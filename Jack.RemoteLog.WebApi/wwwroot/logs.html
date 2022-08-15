@@ -239,7 +239,9 @@
             </div>
             <div>
                 <input placeholder="开始时间" v-model="startTime" />
-                <input placeholder="结束时间" v-model="endTime" />
+                <input placeholder="结束时间" v-model="endTime" />&nbsp;&nbsp;
+                <span v-if="isBusy">正在加载...</span>
+                共{{logs.length}}条 Error:<span class="err">{{errCount}}</span>条
             </div>
             <div class="logpanel flex-1">
                 <div v-for="log in logs" class="logitem" :class="{err:log.level==4}">
@@ -263,12 +265,14 @@
 
     //var serverUrl = "http://localhost:9000";
     var model = {
+        isBusy:false,
         appContexts: [],
         sourceContexts: [],
         keyword: undefined,
         selectedAppContext: undefined,
         selectedSourceContext: undefined,
-        logs:[],
+        logs: [],
+        errCount:0,
         startTime: undefined,
         endTime: undefined,
     };
@@ -283,7 +287,7 @@
         watch: {
             selectedAppContext: function (newval) {
                 model.selectedSourceContext = undefined;
-                model.startTime = new Date(Date.now() - 10 * 60000).toLocaleString();
+                model.startTime = new Date(Date.now() - 1 * 60000).toLocaleString();
                 loadSourceContext();
             }
         },
@@ -296,6 +300,9 @@
         methods: {
             nothing: function () { },
             search: function () {
+                if (model.isBusy)
+                    return;
+
                 loadData();
             },
             showTime: function (timestamp) {
@@ -363,19 +370,29 @@
 
         console.log(JSON.stringify(param));
 
+        model.isBusy = true;
         var url = serverUrl + "/Log/ReadLogs";
         axios({
             method: "get",
             url: url,
             params: param
         }).then(function (res) {
+            model.isBusy = false;
             updatedAction = function () {
                 if (divLogPanel.children.length > 0)
                     divLogPanel.children[divLogPanel.children.length - 1].scrollIntoView();
             };
             model.logs = res.data;
+            var errCount = 0;
+            model.logs.forEach(function (item) {
+                if (item.level == 4) {
+                    errCount++;
+                }
+            });
+            model.errCount = errCount;
             console.log(res.data);
         }).catch(function (err) {
+            model.isBusy = false;
             alert(JSON.stringify(err));
         });
      
