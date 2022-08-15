@@ -8,6 +8,26 @@ namespace Jack.RemoteLog.WebApi
         public static IConfiguration Configuration { get; set; }
         public static IServiceProvider ServiceProvider { get; set; }
 
+        static int _pageSize;
+        public static int PageSize
+        {
+            get
+            {
+                if(_pageSize == 0)
+                {
+                    if ( int.TryParse( Configuration["PageSize"],out _pageSize) )
+                    {
+                        return _pageSize;
+                    }
+                    else
+                    {
+                        _pageSize = 50;
+                    }
+                }
+                return _pageSize;
+            }
+        }
+
         public static byte[] GetHash(string value)
         {
             if (value == null)

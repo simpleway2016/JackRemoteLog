@@ -11,4 +11,16 @@
     <PackageReference Include="Quartz" Version="3.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\js\axios.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\vue.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\logs.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

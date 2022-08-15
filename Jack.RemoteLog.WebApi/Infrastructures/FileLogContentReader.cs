@@ -31,9 +31,11 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             var md5hash = Global.GetHash(sourceContext);
             byte[] indexData = new byte[38];
             byte[] header = new byte[3];
+            //如果日志timestamp大于lastTimestamp，则不再读取
+            long lastTimestamp = long.MaxValue;
             try
             {
-                for (long i = starthour; i <= endhour; i += 3600000L)
+                for (long i = starthour; i <= endhour && list.Count < Global.PageSize; i += 3600000L)
                 {
                     var filepath = $"{_folderPath}/{i}.txt";
                     var indexFilepath = $"{_folderPath}/{i}.index.txt";
@@ -53,6 +55,9 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                                 break;
 
                             IndexModel indexItem = Marshal.PtrToStructure<IndexModel>(ptr);
+                            if (indexItem.Time > lastTimestamp)
+                                break;
+
                             if(indexItem.Time >= startTimeStamp && indexItem.Time <= endTimeStamp)
                             {
                                 if(md5hash != null)
@@ -95,6 +100,10 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                                     Level = (LogLevel)indexItem.Level,
                                     Timestamp = indexItem.Time
                                 });
+                                if(list.Count >= Global.PageSize)
+                                {
+                                    lastTimestamp = indexItem.Time;
+                                }
                             }
 
                             if(indexItem.Time > endTimeStamp)
