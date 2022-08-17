@@ -295,7 +295,7 @@
         watch: {
             selectedAppContext: function (newval) {
                 model.selectedSourceContext = undefined;
-                model.startTime = new Date(Date.now() - 1 * 60000).toLocaleString();
+                model.startTime = new Date(Date.now() - 1 * 60000).toLocaleString('chinese', { hour12: false });
                 loadSourceContext();
             }
         },
