@@ -288,7 +288,7 @@
     model.startTime = new Date(Date.now() - 10 * 60000).toLocaleString();
     var updatedAction;
     var vue;
-    var pageSize = 0;
+
     vue = new Vue({
         el: document.body.querySelector(".main"),
         data: model,
@@ -398,10 +398,9 @@
                     divLogPanel.children[divLogPanel.children.length - 1].scrollIntoView();
             };
             model.logs = res.data;
-            if (res.data.length > pageSize)
-                pageSize = res.data.length;
+           
 
-            if (res.data.length < pageSize) {
+            if (res.data.length == 0) {
                 model.hasMore = false;
             }
 
@@ -451,7 +450,7 @@
                     divLogPanel.children[divLogPanel.children.length - 1].scrollIntoView();
             };
             model.logs = [...model.logs, ...res.data];
-            if (res.data.length < pageSize) {
+            if (res.data.length == 0) {
                 model.hasMore = false;
             }
             var errCount = 0;
