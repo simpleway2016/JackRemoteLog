@@ -15,6 +15,12 @@ namespace Jack.RemoteLog.WebApi.Controllers
 
         }
 
+        [HttpGet]
+        public int GetPageSize()
+        {
+            return Global.PageSize;
+        }
+
         [HttpPost]
         public void WriteLog(WriteLogModel writeLogModel)
         {
