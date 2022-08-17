@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using System;
+using System.Diagnostics;
 
 namespace UnitTest
 {
@@ -29,6 +30,7 @@ namespace UnitTest
             {
                 builder.UseJackRemoteLogger(Global.Configuration, "MyApplicationContext");
             });
+            _services.AddScoped<TestObject>();
 
             Global.ServiceProvider = _serviceProvider = _services.BuildServiceProvider();
            
@@ -39,6 +41,25 @@ namespace UnitTest
         {
             Global.ServiceProvider.GetService<ILogger<Test>>().LogDebug("hello");
             Thread.Sleep(1000);
+        }
+
+        [TestMethod]
+        public void test()
+        {
+            new Thread(test2).Start();
+            new Thread(test2).Start();
+            Thread.Sleep(2000);
+        }
+
+        void test2()
+        {
+            var scope = _serviceProvider.CreateScope();
+           scope.ServiceProvider.GetService<TestObject>();
+            scope.Dispose();
+        }
+        void test3()
+        {
+            Global.ServiceProvider.GetService<TestObject>();
         }
 
 
@@ -61,6 +82,19 @@ namespace UnitTest
                 if(i % 1000 == 0)
                     Thread.Sleep(1);
             }
+        }
+    }
+
+    class TestObject:IDisposable
+    {
+        public TestObject()
+        {
+            Debug.WriteLine("运行构造函数");
+        }
+
+        public void Dispose()
+        {
+            Debug.WriteLine("释放了");
         }
     }
 }
