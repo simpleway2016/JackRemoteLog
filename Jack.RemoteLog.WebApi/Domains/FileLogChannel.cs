@@ -27,13 +27,14 @@ namespace Jack.RemoteLog.WebApi.Domains
 
         public void WriteLog(WriteLogModel request)
         {
-            _contentWriter.Write(request);
             _sourceContexts.Add(request.SourceContext);
+            request.SourceContextId = _sourceContexts.GetId(request.SourceContext);
+            _contentWriter.Write(request);
         }
 
         public LogItem[] Read(string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
         {
-            return _contentReader.Read(sourceContext,level, startTimeStamp, endTimeStamp, keyWord);
+            return _contentReader.Read(_sourceContexts,sourceContext, level, startTimeStamp, endTimeStamp, keyWord);
         }
 
         public string[] GetAllSourceContext()

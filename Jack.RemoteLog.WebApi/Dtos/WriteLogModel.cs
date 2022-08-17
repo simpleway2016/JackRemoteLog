@@ -3,6 +3,7 @@
     public class WriteLogModel
     {
         public string ApplicationContext { get; set; }
+        public int SourceContextId { get; set; }
         public string SourceContext { get; set; }
         public long Timestamp { get; set; }
         public LogLevel Level { get; set; }

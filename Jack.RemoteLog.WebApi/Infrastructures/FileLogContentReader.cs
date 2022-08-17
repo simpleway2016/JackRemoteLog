@@ -1,4 +1,5 @@
-﻿using Jack.RemoteLog.WebApi.Dtos;
+﻿using Jack.RemoteLog.WebApi.Domains;
+using Jack.RemoteLog.WebApi.Dtos;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -16,7 +17,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
         {
         }
 
-        public unsafe LogItem[] Read(string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
+        public unsafe LogItem[] Read(ISourceContextCollection sourceContextes, string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
         {
             var intLevel = (short)level.GetValueOrDefault();
             if (sourceContext != null && sourceContext.Contains("\r"))
@@ -32,8 +33,8 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             FileStream reader = null;
             FileStream indexReader = null;
             List<LogItem> list = new List<LogItem>();
-            var md5hash = Global.GetHash(sourceContext);
-            byte[] indexData = new byte[38];
+            var findSourceId = sourceContextes.GetId(sourceContext);
+            byte[] indexData = new byte[sizeof(IndexModel)];
             byte[] header = new byte[3];
             //如果日志timestamp大于lastTimestamp，则不再读取
             long lastTimestamp = long.MaxValue;
@@ -64,10 +65,10 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
                             if(indexItem.Time >= startTimeStamp && indexItem.Time <= endTimeStamp)
                             {
-                                if(md5hash != null)
+                                if(findSourceId != 0)
                                 {
                                     //需要匹对sourceContext
-                                    if (Global.IsEquals(md5hash , indexItem.SourceContext) == false)
+                                    if (findSourceId != indexItem.SourceContextId)
                                     {
                                         continue;
                                     }
@@ -88,9 +89,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
                                 byte[] data = new byte[indexItem.Length - 3];
                                 reader.Read(data);
-                                var info = Encoding.UTF8.GetString(data);
-                                var sc = info.Substring(0, info.IndexOf("\r"));
-                                var content = info.Substring(sc.Length + 2);
+                                var content = Encoding.UTF8.GetString(data);
 
                                 if(keyWord != null)
                                 {
@@ -100,7 +99,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
                                 list.Add(new LogItem { 
                                     Content = content,
-                                    SourceContext = sc,
+                                    SourceContext = sourceContextes.GetSourceContext(indexItem.SourceContextId),
                                     Level = (LogLevel)indexItem.Level,
                                     Timestamp = indexItem.Time
                                 });

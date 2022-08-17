@@ -61,9 +61,6 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
         unsafe void writeToFile(WriteLogModel writeLogModel)
         {
-            if (writeLogModel.SourceContext.Contains("\r"))
-                writeLogModel.SourceContext = writeLogModel.SourceContext.Replace("\r", "");
-
             var hour = writeLogModel.Timestamp - writeLogModel.Timestamp % 3600000L;
             if (_curTimeStamp != hour)
             {
@@ -79,20 +76,20 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             }
 
             var position = _Writer.Position;
-            string writeContent = $"{writeLogModel.SourceContext}\r\n{writeLogModel.Content}";
+            string writeContent = writeLogModel.Content;
             var bs = Encoding.UTF8.GetBytes(writeContent);
             _Writer.Write(HEADER);
             _Writer.Write(bs);
             var len = bs.Length + HEADER.Length;
 
-            bs = new byte[38];
+            bs = new byte[sizeof(IndexModel)];
            
             var model = new IndexModel();
             model.Position = position;
             model.Length = len;
             model.Time = writeLogModel.Timestamp;
             model.Level = (short)writeLogModel.Level;
-            model.SourceContext = Global.GetHash(writeLogModel.SourceContext);
+            model.SourceContextId = writeLogModel.SourceContextId;
 
             fixed (byte* bsPtr = bs)
             {
@@ -123,7 +120,6 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
         public int Length;
         public long Time;
         public short Level;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-        public byte[] SourceContext;
+        public int SourceContextId;
     }
 }

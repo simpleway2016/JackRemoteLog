@@ -18,13 +18,24 @@ namespace Jack.RemoteLog.WebApi.Controllers
         [HttpPost]
         public void WriteLog(WriteLogModel writeLogModel)
         {
+            if (writeLogModel.SourceContext.Contains("\r") || writeLogModel.SourceContext.Contains("\n"))
+            {
+                writeLogModel.SourceContext = writeLogModel.SourceContext.Replace("\r", "-").Replace("\n", "-");
+            }
             _logService.WriteLog(writeLogModel);
         }
 
         [HttpGet]
         public LogItem[] ReadLogs(string applicationContext, string? sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string? keyWord)
         {
-            return _logService.ReadLogs(applicationContext,sourceContext,level, startTimeStamp,endTimeStamp,keyWord);
+            if (sourceContext != null)
+            {
+                if (sourceContext.Contains("\r") || sourceContext.Contains("\n"))
+                {
+                    sourceContext = sourceContext.Replace("\r", "-").Replace("\n", "-");
+                }
+            }
+            return _logService.ReadLogs(applicationContext, sourceContext, level, startTimeStamp, endTimeStamp, keyWord);
         }
 
         [HttpGet]
