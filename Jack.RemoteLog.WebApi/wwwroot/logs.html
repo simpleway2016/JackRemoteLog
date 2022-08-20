@@ -253,7 +253,8 @@
                
             </div>
             <div class="flex-shrink-0">
-                <button @click="loadMore" :class="{loading:isBusy}">加载更多...</button>
+                <button @click="loadMore" v-show="!autoLoadMore" :class="{loading:isBusy}">加载更多...</button>&nbsp;&nbsp;
+                <input type="checkbox" v-model="autoLoadMore" id="chk1"/><label for="chk1">自动监测新日志</label>
             </div>
         </div>
 
@@ -272,7 +273,8 @@
     //var serverUrl = "http://localhost:9000";
     var model = {
         isBusy: false,
-        hasMore:false,
+        hasMore: false,
+        autoLoadMore:false,
         appContexts: [],
         sourceContexts: [],
         keyword: undefined,
@@ -288,6 +290,7 @@
     model.startTime = new Date(Date.now() - 10 * 60000).toLocaleString();
     var updatedAction;
     var vue;
+    var autoLoadMore_timer = 0;
 
     vue = new Vue({
         el: document.body.querySelector(".main"),
@@ -297,6 +300,15 @@
                 model.selectedSourceContext = undefined;
                 model.startTime = new Date(Date.now() - 1 * 60000).toLocaleString('chinese', { hour12: false });
                 loadSourceContext();
+            },
+            autoLoadMore: function (newVal) {
+                if (newVal) {
+                    autoLoadMore_timer = setInterval(function () { loadMoreData(true); }, 2000);
+                }
+                else {
+                    clearInterval(autoLoadMore_timer);
+                    autoLoadMore_timer = 0;
+                }
             }
         },
         updated: function (ee) {
@@ -362,6 +374,10 @@
     }
 
     function loadData() {
+        if (autoLoadMore_timer) {
+            clearInterval(autoLoadMore_timer);
+            autoLoadMore_timer = 0;
+        }
         var startTimeStamp;
         var endTimeStamp;
         if (model.startTime == undefined) {
@@ -412,6 +428,10 @@
             });
             model.errCount = errCount;
             console.log(res.data);
+
+            if (model.autoLoadMore) {
+                autoLoadMore_timer = setInterval(function () { loadMoreData(true); }, 2000);
+            }
         }).catch(function (err) {
             model.isBusy = false;
             alert(JSON.stringify(err));
@@ -419,8 +439,20 @@
      
     }
 
-    function loadMoreData() {
-        var startTimeStamp = model.logs[model.logs.length - 1].timestamp + 1;
+    function loadMoreData(isauto) {
+        console.log("loadMoreData执行");
+        var startTimeStamp;
+        if (model.logs.length == 0) {
+            if (model.startTime == undefined) {
+                startTimeStamp = Date.now() - 10 * 60000;
+            }
+            else {
+                startTimeStamp = Date.parse(model.startTime);
+            }
+        }
+        else {
+            startTimeStamp = model.logs[model.logs.length - 1].timestamp + 1;
+        }
         var endTimeStamp;
 
         if (model.endTime) {
@@ -437,14 +469,19 @@
 
         console.log(JSON.stringify(param));
 
-        model.isBusy = true;
+        if (!isauto) {
+            model.isBusy = true;
+        }
         var url = serverUrl + "/Log/ReadLogs";
         axios({
             method: "get",
             url: url,
             params: param
         }).then(function (res) {
-            model.isBusy = false;
+            if (!isauto) {
+                model.isBusy = false;
+            }
+
             updatedAction = function () {
                 if (divLogPanel.children.length > 0)
                     divLogPanel.children[divLogPanel.children.length - 1].scrollIntoView();
@@ -462,7 +499,9 @@
             model.errCount = errCount;
             console.log(res.data);
         }).catch(function (err) {
-            model.isBusy = false;
+            if (!isauto) {
+                model.isBusy = false;
+            }
             alert(JSON.stringify(err));
         });
 
