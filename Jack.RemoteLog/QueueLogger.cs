@@ -76,10 +76,19 @@ namespace Jack.RemoteLog
         {
             //if (IsEnabled(logLevel))
             {
+                string msg = state.ToString();
+                if (exception != null)
+                {
+                    if (string.IsNullOrEmpty(msg))
+                        msg = exception.ToString();
+                    else
+                        msg = $"{msg}\r\n{exception.ToString()}";
+                }
+               
                 Queue.Enqueue(new LogItem
                 {
                     Level = logLevel,
-                    Content = formatter(state, exception),
+                    Content = msg,
                     Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     SourceContext = _categoryName,
                     ApplicationContext = _applicationContext

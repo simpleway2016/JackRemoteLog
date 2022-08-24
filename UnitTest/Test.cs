@@ -39,28 +39,11 @@ namespace UnitTest
         [TestMethod]
         public void TestLogger()
         {
-            Global.ServiceProvider.GetService<ILogger<Test>>().LogDebug("hello");
+            Global.ServiceProvider.GetService<ILogger<Test>>().LogError(new Exception("abc") , "¥ÌŒÛ“Ï≥£");
+            Global.ServiceProvider.GetService<ILogger<Test>>().LogInformation("normal");
             Thread.Sleep(1000);
         }
 
-        [TestMethod]
-        public void test()
-        {
-            new Thread(test2).Start();
-            new Thread(test2).Start();
-            Thread.Sleep(2000);
-        }
-
-        void test2()
-        {
-            var scope = _serviceProvider.CreateScope();
-           scope.ServiceProvider.GetService<TestObject>();
-            scope.Dispose();
-        }
-        void test3()
-        {
-            Global.ServiceProvider.GetService<TestObject>();
-        }
 
 
         [TestMethod]

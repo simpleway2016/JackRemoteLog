@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.0.6</Version>
+    <Version>1.0.0.7</Version>
     <Authors>Jack.T</Authors>
     <Description>配置文件：
   "Logging": {
