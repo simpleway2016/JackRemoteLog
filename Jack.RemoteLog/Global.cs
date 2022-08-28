@@ -12,5 +12,6 @@ namespace Jack.RemoteLog
     {
         public static LogLevel MinimumLevel { get; set; }
         public static IConfiguration Configuration { get; set; }
+        public static string ServerUrl { get; set; }
     }
 }

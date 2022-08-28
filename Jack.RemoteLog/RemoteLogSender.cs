@@ -15,9 +15,12 @@ namespace Jack.RemoteLog
         }
         public void Send(LogItem logitem)
         {
-            var url = Global.Configuration["Logging:ServerUrl"];
-            var serverUrl = $"{url}/Log/WriteLog";
-            Way.Lib.HttpClient.PostJson(serverUrl, logitem, 8000);
+            var url = Global.ServerUrl;
+            if (!string.IsNullOrEmpty(url))
+            {
+                var serverUrl = $"{url}/Log/WriteLog";
+                Way.Lib.HttpClient.PostJson(serverUrl, logitem, 8000);
+            }
         }
     }
 }

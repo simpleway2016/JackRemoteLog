@@ -13,22 +13,33 @@ namespace Jack.RemoteLog
 {
     public static class Extens
     {
-        //static void ConfigurationChangeCallback(object p)
-        //{
-        //    ILoggingBuilder loggingBuilder = (ILoggingBuilder)p;
-        //    Global.Configuration.GetReloadToken().RegisterChangeCallback(ConfigurationChangeCallback, p);
+        static void ConfigurationChangeCallback(object p)
+        {
+            Global.ServerUrl = Global.Configuration["Logging:ServerUrl"];
+            //ILoggingBuilder loggingBuilder = (ILoggingBuilder)p;
+            Global.Configuration.GetReloadToken().RegisterChangeCallback(ConfigurationChangeCallback, p);
 
-        //    string minimumLevel = Global.Configuration["Logging:LogLevel:Default"];
-        //    if (Enum.TryParse<LogLevel>(minimumLevel , out LogLevel level))
-        //    {
-        //        Global.MinimumLevel = level;
-        //        loggingBuilder.SetMinimumLevel(Global.MinimumLevel);
-        //    }
-        //    else
-        //    {
-        //        throw new Exception("配置信息Logging:LogLevel:Default无法转换为LogLevel");
-        //    }
-        //}
+            //string minimumLevel = Global.Configuration["Logging:LogLevel:Default"];
+            //if (Enum.TryParse<LogLevel>(minimumLevel, out LogLevel level))
+            //{
+            //    Global.MinimumLevel = level;
+            //    loggingBuilder.SetMinimumLevel(Global.MinimumLevel);
+            //}
+            //else
+            //{
+            //    throw new Exception("配置信息Logging:LogLevel:Default无法转换为LogLevel");
+            //}
+        }
+
+
+        public static void UseJackRemoteLogger(this ILoggingBuilder builder, IConfiguration configuration)
+        {
+            Global.Configuration = configuration;
+
+            ConfigurationChangeCallback(builder);
+
+            builder.AddProvider(new AsyncLoggerProvider(configuration["Logging:ContextName"]));
+        }
 
         /// <summary>
         /// 使用Jack.RemoteLog异步远程日志
@@ -39,7 +50,7 @@ namespace Jack.RemoteLog
         {
             Global.Configuration = configuration;
 
-            //ConfigurationChangeCallback(builder);
+            ConfigurationChangeCallback(builder);
 
             builder.AddProvider(new AsyncLoggerProvider(applicationContext));
         }

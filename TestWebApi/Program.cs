@@ -4,7 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 Console.WriteLine(builder.Configuration["Logging"]);
 builder.Services.AddLogging(b =>
 {
-    b.UseJackRemoteLogger(builder.Configuration, "abc");
+    b.UseJackRemoteLogger(builder.Configuration);
 });
 // Add services to the container.
 
