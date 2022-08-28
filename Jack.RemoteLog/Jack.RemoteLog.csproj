@@ -10,6 +10,7 @@
     <Description>配置文件：
   "Logging": {
     "ServerUrl": "http://127.0.0.1:9000",
+    "ContextName": "YourContextName",
     "LogLevel": {
       "Default": "Debug"
     },
