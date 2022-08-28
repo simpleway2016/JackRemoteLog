@@ -482,6 +482,9 @@
                 model.isBusy = false;
             }
 
+            if (res.data.length == 0)
+                return;
+
             updatedAction = function () {
                 if (divLogPanel.children.length > 0)
                     divLogPanel.children[divLogPanel.children.length - 1].scrollIntoView();
