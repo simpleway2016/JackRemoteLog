@@ -233,8 +233,17 @@
             <div class="flex-shrink-0" v-show="selectedAppContext">
                 <div style="text-align:right;">
                     <input placeholder="关键字" v-model="keyword"/>
+                    <select v-model="level">
+                        <option value="">所有Level</option>
+                        <option value="0">Trace</option>
+                        <option value="1">Debug</option>
+                        <option value="2">Information</option>
+                        <option value="3">Warning</option>
+                        <option value="4">Error</option>
+                        <option value="5">Critical</option>
+                    </select>
                     <select v-model="selectedSourceContext">
-                        <option :value="sourceContext" v-for="sourceContext in sourceContexts">{{sourceContext?sourceContext:"选择SourceContext"}}</option>
+                        <option :value="sourceContext" v-for="sourceContext in sourceContexts">{{sourceContext?sourceContext:"所有SourceContext"}}</option>
                     </select>
                     <button @click="search" :class="{loading:isBusy}" >过滤</button>
                 </div>
@@ -280,6 +289,7 @@
         keyword: undefined,
         selectedAppContext: undefined,
         selectedSourceContext: undefined,
+        level: "",
         logs: [],
         errCount:0,
         startTime: undefined,
@@ -395,6 +405,7 @@
             applicationContext: model.selectedAppContext,
             sourceContext: model.selectedSourceContext,
             keyWord: model.keyword,
+            level: model.level,
             startTimeStamp: startTimeStamp,
             endTimeStamp: endTimeStamp,
         };
@@ -463,6 +474,7 @@
             applicationContext: model.selectedAppContext,
             sourceContext: model.selectedSourceContext,
             keyWord: model.keyword,
+            level: model.level,
             startTimeStamp: startTimeStamp,
             endTimeStamp: endTimeStamp,
         };
