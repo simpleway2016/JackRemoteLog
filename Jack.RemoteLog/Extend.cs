@@ -16,19 +16,19 @@ namespace Jack.RemoteLog
         static void ConfigurationChangeCallback(object p)
         {
             Global.ServerUrl = Global.Configuration["Logging:ServerUrl"];
-            //ILoggingBuilder loggingBuilder = (ILoggingBuilder)p;
+            ILoggingBuilder loggingBuilder = (ILoggingBuilder)p;
             Global.Configuration.GetReloadToken().RegisterChangeCallback(ConfigurationChangeCallback, p);
 
-            //string minimumLevel = Global.Configuration["Logging:LogLevel:Default"];
-            //if (Enum.TryParse<LogLevel>(minimumLevel, out LogLevel level))
-            //{
-            //    Global.MinimumLevel = level;
-            //    loggingBuilder.SetMinimumLevel(Global.MinimumLevel);
-            //}
-            //else
-            //{
-            //    throw new Exception("配置信息Logging:LogLevel:Default无法转换为LogLevel");
-            //}
+            string minimumLevel = Global.Configuration["Logging:LogLevel:Default"];
+            if (Enum.TryParse<LogLevel>(minimumLevel, out LogLevel level))
+            {
+                Global.MinimumLevel = level;
+                loggingBuilder.SetMinimumLevel(Global.MinimumLevel);
+            }
+            else
+            {
+                throw new Exception("配置信息Logging:LogLevel:Default无法转换为LogLevel");
+            }
         }
 
 

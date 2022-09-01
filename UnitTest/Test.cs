@@ -39,9 +39,10 @@ namespace UnitTest
         [TestMethod]
         public void TestLogger()
         {
+            Global.ServiceProvider.GetService<ILogger<Test>>().LogDebug("LogDebug");
             Global.ServiceProvider.GetService<ILogger<Test>>().LogError(new Exception("abc") , "¥ÌŒÛ“Ï≥£");
             Global.ServiceProvider.GetService<ILogger<Test>>().LogInformation("normal");
-            Thread.Sleep(1000);
+            Thread.Sleep(10000);
         }
 
 
