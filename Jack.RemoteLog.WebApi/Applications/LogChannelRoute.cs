@@ -25,12 +25,21 @@ namespace Jack.RemoteLog.WebApi.Applications
             var appFolder = Directory.GetDirectories(folderPath);
             foreach( var folder in appFolder )
             {
-                if(File.Exists(folder + "/sourcecontext.txt"))
+                if(File.Exists(folder + "/sourcecontext.db"))
                 {
                     var obj = this[Path.GetFileName(folder)];
                 }
             }
         }
+
+        public void DeleteLogs(long endTime)
+        {
+            foreach( var pair in _dict)
+            {
+                this[pair.Key].DeleteLogs(endTime);
+            }
+        }
+
 
         public string[] GetApplications()
         {

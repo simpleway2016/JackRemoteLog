@@ -8,8 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.8" />
+ <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.8" />
     <PackageReference Include="Quartz" Version="3.4.0" />
+<PackageReference Include="Lucene.Net.Analysis.Common" Version="4.8.0-beta00005" />
+    <PackageReference Include="Lucene.Net.QueryParser" Version="4.8.0-beta00005" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PanGu.Core">
+      <HintPath>..\PanGuDll\PanGu.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="PanGu.Lucene.Analyzer">
+      <HintPath>..\PanGuDll\PanGu.Lucene.Analyzer.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

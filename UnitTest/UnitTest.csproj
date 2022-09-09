@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lucene.Net.Analysis.PanGu" Version="2.4.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.8" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
@@ -38,6 +37,15 @@
   <ItemGroup>
     <ProjectReference Include="..\Jack.RemoteLog.WebApi\Jack.RemoteLog.WebApi.csproj" />
     <ProjectReference Include="..\Jack.RemoteLog\Jack.RemoteLog.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PanGu.Core">
+      <HintPath>..\PanGuDll\PanGu.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="PanGu.Lucene.Analyzer">
+      <HintPath>..\PanGuDll\PanGu.Lucene.Analyzer.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

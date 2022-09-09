@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Microsoft.Data.Sqlite;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Text;
 
@@ -9,48 +10,84 @@ namespace Jack.RemoteLog.WebApi.Domains
         int _currentMaxId;
         ConcurrentDictionary<string,int> _dict = new ConcurrentDictionary<string,int>();
         string _filepath;
-        StreamWriter _stream;
+        SqliteConnection _sqlCon;
         public FileSourceContextCollection(string folderPath)
         {
-            _filepath = $"{folderPath}/sourcecontext.txt";
-            if (File.Exists(_filepath))
-            {
-                using ( var sr = new StreamReader(new FileStream(_filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Encoding.UTF8))
-                {
-                    while (true)
-                    {
-                        var line = sr.ReadLine();
-                        if (!string.IsNullOrEmpty(line))
-                        {
-                            var index = line.IndexOf(":");
-                            var id = int.Parse(line.Substring(0, index));
-                            var content = line.Substring(index + 1);
-                            _dict.TryAdd(content,id);
-                            if (id > _currentMaxId)
-                                id = _currentMaxId;
-                        }
-                        if (line == null)
-                            break;
-                    }
-                }
+            _filepath = $"{folderPath}/sourcecontext.db";
+            _sqlCon = new SqliteConnection($"data source='{_filepath}'");
+            
 
-                _stream = new StreamWriter(new FileStream(_filepath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite), Encoding.UTF8);
-                _stream.BaseStream.Position = _stream.BaseStream.Length;
+     
+            if (File.Exists(_filepath) == false)
+            {
+                _sqlCon.Open();
+                init();
             }
             else
             {
-                _stream = new StreamWriter(new FileStream(_filepath , FileMode.Create , FileAccess.Write , FileShare.ReadWrite),Encoding.UTF8);
+                _sqlCon.Open();
+
+                using (SqliteCommand cmd = new SqliteCommand(null,_sqlCon))
+                {
+                    cmd.CommandText = "select id,name from sourcecontext";
+                    try
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                _dict[reader["name"].ToString()] = Convert.ToInt32( reader["id"]);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        init();
+                    }
+                }
             }
         }
+
+        void init()
+        {
+            try
+            {
+                SqliteCommand cmd = new SqliteCommand();
+                cmd.CommandText = @"
+create table sourcecontext (
+    [id]            integer PRIMARY KEY autoincrement,
+    [name]         varchar (255)
+)
+";
+                cmd.Connection = _sqlCon;
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+            }
+            catch 
+            {
+
+            }
+        }
+
+
+
         public void Add(string sourceContext)
         {
-            if (_dict.TryAdd(sourceContext, 0))
+            if (_dict.ContainsKey(sourceContext) == false)
             {
-                var newid = Interlocked.Increment(ref _currentMaxId);
-                _dict[sourceContext] = newid;
+                using (SqliteCommand cmd = new SqliteCommand())
+                {
+                    var sqlparam = new SqliteParameter();
+                    sqlparam.Value = sourceContext;
+                    sqlparam.ParameterName = "@p";
+                    cmd.Parameters.Add(sqlparam);
 
-                _stream.WriteLine($"{newid}:{sourceContext}");
-                _stream.Flush();
+                    cmd.Connection = _sqlCon;
+                    cmd.CommandText = "insert into sourcecontext (name) values (@p)";
+                    cmd.ExecuteNonQuery();
+                    cmd.CommandText = "select last_insert_rowid()";
+                    _dict[sourceContext] = Convert.ToInt32( cmd.ExecuteScalar());
+                }
             }
         }
 
@@ -69,8 +106,8 @@ namespace Jack.RemoteLog.WebApi.Domains
 
         public void Dispose()
         {
-            _stream?.Dispose();
-            _stream = null;
+            _sqlCon?.Dispose();
+            _sqlCon = null;
         }
 
         public IEnumerator<string> GetEnumerator()

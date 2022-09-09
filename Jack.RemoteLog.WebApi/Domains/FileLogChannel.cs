@@ -21,8 +21,8 @@ namespace Jack.RemoteLog.WebApi.Domains
                 Directory.CreateDirectory(logFolderPath);
             }
             _sourceContexts = new FileSourceContextCollection(folderPath);
-            _contentWriter = new FileLogContentWriter(logFolderPath);
-            _contentReader = new FileLogContentReader(logFolderPath);
+            _contentWriter = new LuceneContentWriter(logFolderPath);
+            _contentReader = new LuceneContentReader(logFolderPath , _sourceContexts);
         }
 
         public void WriteLog(WriteLogModel request)
@@ -35,6 +35,16 @@ namespace Jack.RemoteLog.WebApi.Domains
         public LogItem[] Read(string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
         {
             return _contentReader.Read(_sourceContexts,sourceContext, level, startTimeStamp, endTimeStamp, keyWord);
+        }
+
+        /// <summary>
+        /// 删除指定时间之前的日志
+        /// </summary>
+        /// <param name="endTime"></param>
+       public void DeleteLogs(long endTime)
+        {
+            _contentWriter.DeleteLogs(endTime);
+
         }
 
         public string[] GetAllSourceContext()

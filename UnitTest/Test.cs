@@ -4,7 +4,6 @@ using Jack.RemoteLog.WebApi.Applications;
 using Jack.RemoteLog.WebApi.AutoMissions;
 using Lucene.Net.Analysis.PanGu;
 using Lucene.Net.Analysis;
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,6 +16,10 @@ using Lucene.Net.Store;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
+using System.Text;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Jack.RemoteLog.WebApi.Dtos;
+using Lucene.Net.QueryParsers.Classic;
 
 namespace UnitTest
 {
@@ -53,91 +56,113 @@ namespace UnitTest
             Analyzer analyzer = new PanGuAnalyzer(); //MMSegAnalyzer //StandardAnalyzer
 
             //添加文本内容
-            var context = @"中国专业IT社区CSDN (Chinese Software Developer Network) 创立于1999年，致力于为中国软件开发者提供知识传播、在线学习、职业发展等全生命周期服务。
-旗下拥有：专业的中文IT技术社区： CSDN.NET；移动端开发者专属APP： CSDN APP、CSDN学院APP；新媒体矩阵微信公众号：CSDN资讯、程序人生、GitChat、CSDN学院、AI科技大本营、区块链大本营、CSDN云计算、GitChat精品课、人工智能头条、CSDN企业招聘；IT技术培训学习平台： CSDN学院；技术知识移动社区： GitChat；人工智能新社区： TinyMind；权威IT技术内容平台：《程序员》+GitChat；IT人力资源服务：科锐福克斯；IT技术管理者平台：CTO俱乐部。";
-            //也可指定其他字段信息如：id
-            var id = "77889111111111111111";
+            var context = "Exchange:Exchange.BlockScan 收到BlockScan信息：{\"BlockNumber\":43325451,\"Txid\":\"04b394121551767dd7237d8fcaf84eab31f102f3bd03122b94bf784581217ec5\",\"Amount\":99999.0,\"Time\":\"1970-01-01T00:00:00+00:00\",\"Confirmations\":3,\"Valid\":true,\"PropertyId\":\"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\",\"CoinType\":202,\"TronTransactionType\":\"TriggerSmartContract\",\"ContractRet\":\"SUCCESS\",\"Fee\":0.0,\"SenderAddress\":\"TBA6CypYJizwA9XdC7Ubgc5F1bxrQ7SqPt\",\"ReceivedAddress\":\"TVKCgFfuuzu11idqBjqMoSUDvmVQYnJWwY\",\"Coin\":\"USDT\"}";
 
-            IndexWriter iw = new IndexWriter(FSDirectory.Open(INDEX_DIR), analyzer, true, IndexWriter.MaxFieldLength.LIMITED);
 
-            //存储文档添加索引
-            Document doc = new Document();
-            //指定上方变量：内容存储的key以及解析模式
-            doc.Add(new Field("body", context, Field.Store.YES, Field.Index.ANALYZED));
-            //指定上方变量：id存储的key以及解析模式
-            doc.Add(new Field("id", id, Field.Store.YES, Field.Index.NOT_ANALYZED));
+            IndexWriter iw;
 
-            //将解析完成的内容存储
-            iw.AddDocument(doc);
+            var options = new IndexWriterConfig(Lucene.Net.Util.LuceneVersion.LUCENE_48, null);
+            options.OpenMode = OpenMode.CREATE_OR_APPEND;
 
-            iw.Commit();
-            iw.Optimize();
+            iw = new IndexWriter(FSDirectory.Open(INDEX_DIR), options);
+
+            //var rangeQuery_2_1 = NumericRangeQuery.NewInt64Range("date", null, DateTimeOffset.Now.ToUnixTimeMilliseconds()*2, true, true);
+            //iw.DeleteDocuments(rangeQuery_2_1);
+            //iw.Commit();
+            //iw.Flush(true,true);
+
+            Task.Run(() => {
+                Thread.Sleep(2000);
+                while (true)
+                {
+                    TestSearchPanGu();
+                    Debug.WriteLine("搜索完一遍");
+                    Thread.Sleep(0);
+                }
+            });
+            Task.Run(() => {
+                while (true)
+                {
+                    Thread.Sleep(1000);
+                    iw.Commit();
+                    iw.Flush(true, false);
+                }
+            });
+
+            for (int i = 0; i < 100000000;i++)
+            {
+                //存储文档添加索引
+                Document doc = new Document();
+                //指定上方变量：内容存储的key以及解析模式
+                doc.Add(new TextField("body", context, Field.Store.YES));
+
+                doc.AddInt32Field("id", i , Field.Store.YES);
+              
+
+                var timestamp = DateTimeOffset.Parse(DateTime.Parse("2022-10-1").AddMinutes(i).ToString("yyyy-MM-dd HH:mm:ss")).ToUnixTimeMilliseconds();
+                doc.AddInt64Field("date", timestamp, Field.Store.YES);
+                //将解析完成的内容存储
+                iw.AddDocument(doc , analyzer);
+               
+            }
             iw.Dispose();
+            Thread.Sleep(10000000);
+        }
+
+        private BooleanQuery AnalyzerKeyword(string keyword)
+        {
+            StringBuilder queryStringBuilder = new StringBuilder();
+            string[] words = LuceneAnalyze.AnalyzerKey(keyword);
+
+            BooleanQuery queryOr = new BooleanQuery();
+
+            foreach ( var word in words)
+            {
+                var termQuery = new TermQuery(new Term("body", word));
+                queryOr.Add(termQuery, Occur.SHOULD);
+            }
+
+            return queryOr;
         }
 
         [TestMethod]
         public void TestSearchPanGu()
         {
-            var keyword = "致力于为中国软件开发者提供知识传播";
+            var starttime = DateTimeOffset.Parse("2021-10-2").ToUnixTimeMilliseconds();
+            var endtime = DateTimeOffset.Parse("2023-10-3").ToUnixTimeMilliseconds();
+
+            var keyword = "04b394121551767dd7237d8fcaf84eab31f102f3bd03122b94bf784581217ec5";
+
             DirectoryInfo INDEX_DIR = new DirectoryInfo(AppContext.BaseDirectory + "index");
             Analyzer analyzer = new PanGuAnalyzer(); //MMSegAnalyzer //StandardAnalyzer
 
-            IndexSearcher searcher = new IndexSearcher(FSDirectory.Open(INDEX_DIR), true);
-            //配置要检索的Key
-            QueryParser qp = new QueryParser(Lucene.Net.Util.Version.LUCENE_30, "body", analyzer);
-            //对检索内容进行分词
-            Lucene.Net.Search.PhraseQuery query = (Lucene.Net.Search.PhraseQuery)qp.Parse(keyword);
-            Lucene.Net.Search.PhraseQuery realquery = new PhraseQuery();
-            var terms = query.GetTerms();
-            foreach(Term term in terms)
+            using (var indexer = DirectoryReader.Open(FSDirectory.Open(INDEX_DIR)))
             {
-                realquery.Add(new Term(term.Field,term.Text + "*"));
+                IndexSearcher searcher = new IndexSearcher(indexer);
+                //配置要检索的Key
+                QueryParser qp = new QueryParser(Lucene.Net.Util.LuceneVersion.LUCENE_48, "Content", analyzer);
+                Query query = AnalyzerKeyword(keyword);
+
+                var rangeQuery_2_1 = NumericRangeQuery.NewInt64Range("date", starttime, endtime, true, true);
+                BooleanQuery booleanClauses = new BooleanQuery();
+                booleanClauses.Add(query, Occur.MUST);
+                //booleanClauses.Add(rangeQuery_2_1, Occur.MUST);
+
+
+                //查询分词内容，以及设置返回检索结果集数量
+                TopDocs tds = searcher.Search(booleanClauses, 100);
+                Debug.WriteLine("检索结果数: " + tds.TotalHits);
+                //foreach (ScoreDoc sd in tds.ScoreDocs)
+                //{
+                //    //查询匹配分数
+                //    Console.WriteLine(sd.Score);
+
+                //    Document doc = searcher.Doc(sd.Doc);
+                //    Console.WriteLine(doc.Get("body"));
+                //    Console.WriteLine(doc.Get("id"));
+                //    var date = doc.Get("date");
+                //}
             }
-
-            Console.WriteLine("分词结果 {0}", query);
-
-            //查询分词内容，以及设置返回检索结果集数量
-            TopDocs tds = searcher.Search(realquery, 1000);
-            Console.WriteLine("检索结果数: " + tds.TotalHits);
-            foreach (ScoreDoc sd in tds.ScoreDocs)
-            {
-                //查询匹配分数
-                Console.WriteLine(sd.Score);
-
-                Document doc = searcher.Doc(sd.Doc);
-                Console.WriteLine(doc.Get("body"));
-                Console.WriteLine(doc.Get("id"));
-            }
-            searcher.Dispose();
-        }
-
-        [TestMethod]
-        public void TestFts5()
-        {
-            var m_dbConnection = new SqliteConnection(@"Data Source=.\test.db");
-            m_dbConnection.Open();
-
-            //string sql = $"select * from message where message match 'body:确认交易*'";
-            //SqliteCommand command = new SqliteCommand(sql, m_dbConnection);
-            //var reader = command.ExecuteReader();
-            //while (reader.Read())
-            //{
-            //    var num = reader[0];
-            //    var name = reader[1];
-            //}
-
-
-            //for (int i = 0; i < 10000; i++)
-            //{
-            //    string sql = $"insert into message (title,body) values ({i},'确认交易Transaction-ETH,txid0x{i}a3670cf72abc54cfcc093796790f7958ed490db705d8d9eb99e47914be2ce3 r:0x2319db93bf503f850d623b3e67e267685f5f2681 s:0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511 a:0.01271899')";
-            //    SqliteCommand command = new SqliteCommand(sql, m_dbConnection);
-            //    command.ExecuteNonQuery();
-            //}
-
-            string sql = "CREATE VIRTUAL TABLE message USING fts3(title, body, tokenize=ICU)";
-            SqliteCommand command = new SqliteCommand(sql, m_dbConnection);
-            command.ExecuteNonQuery();
-            m_dbConnection.Close();
         }
 
         [TestMethod]
@@ -155,7 +180,7 @@ namespace UnitTest
         public void WriteMuilteLog()
         {
             var logService = _serviceProvider.GetService<LogService>();
-            for (int i = 0; i < 1000000; i++)
+            for (int i = 0; i < 100000000; i++)
             {
                
                 logService.WriteLog(new Jack.RemoteLog.WebApi.Dtos.WriteLogModel
@@ -173,6 +198,103 @@ namespace UnitTest
         }
     }
 
+    public class LuceneAnalyze
+    {
+        #region AnalyzerKey
+        /// <summary>
+        /// 将搜索的keyword分词
+        /// </summary>
+        /// <param name="keyword"></param>
+        /// <returns></returns>
+        public static string[] AnalyzerKey(string keyword)
+        {
+            Analyzer analyzer = new PanGuAnalyzer();
+            QueryParser parser = new QueryParser(Lucene.Net.Util.LuceneVersion.LUCENE_48, "title", analyzer);
+            Query query = parser.Parse(CleanKeyword(keyword));
+            if (query is TermQuery)
+            {
+                Term term = ((TermQuery)query).Term;
+                return new string[] { term.Text() };
+            }
+            else if (query is PhraseQuery)
+            {
+                Term[] term = ((PhraseQuery)query).GetTerms();
+                return term.Select(t => t.Text()).ToArray();
+            }
+            else if (query is BooleanQuery)
+            {
+                BooleanClause[] clauses = ((BooleanQuery)query).GetClauses();
+                List<string> analyzerWords = new List<string>();
+                foreach (BooleanClause clause in clauses)
+                {
+                    Query childQuery = clause.Query;
+                    if (childQuery is TermQuery)
+                    {
+                        Term term = ((TermQuery)childQuery).Term;
+                        analyzerWords.Add(term.Text());
+                    }
+                    else if (childQuery is PhraseQuery)
+                    {
+                        Term[] term = ((PhraseQuery)childQuery).GetTerms();
+                        analyzerWords.AddRange(term.Select(t => t.Text()));
+                    }
+                }
+                return analyzerWords.ToArray();
+            }
+            else
+            {
+                return new string[] { keyword };
+            }
+        }
+
+        /// <summary>
+        /// 清理头尾and or 关键字
+        /// </summary>
+        /// <param name="keyword"></param>
+        /// <returns></returns>
+        private static string CleanKeyword(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            { }
+            else
+            {
+                bool isClean = false;
+                while (!isClean)
+                {
+                    keyword = keyword.Trim();
+                    if (keyword.EndsWith(" AND"))
+                    {
+                        keyword = string.Format("{0}and", keyword.Remove(keyword.Length - 3, 3));
+                    }
+                    else if (keyword.EndsWith(" OR"))
+                    {
+                        keyword = string.Format("{0}or", keyword.Remove(keyword.Length - 2, 2));
+                    }
+                    else if (keyword.StartsWith("AND "))
+                    {
+                        keyword = string.Format("and{0}", keyword.Substring(3));
+                    }
+                    else if (keyword.StartsWith("OR "))
+                    {
+                        keyword = string.Format("or{0}", keyword.Substring(2));
+                    }
+                    else if (keyword.Contains(" OR "))
+                    {
+                        keyword = keyword.Replace(" OR ", " or ");
+                    }
+                    else if (keyword.Contains(" AND "))
+                    {
+                        keyword = keyword.Replace(" AND ", " and ");
+                    }
+                    else
+                        isClean = true;
+                }
+            }
+            return keyword;
+            return QueryParser.Escape(keyword);
+        }
+        #endregion AnalyzerKey
+    }
     class TestObject:IDisposable
     {
         public TestObject()

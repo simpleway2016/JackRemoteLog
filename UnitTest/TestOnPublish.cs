@@ -29,13 +29,18 @@ namespace UnitTest
         public void WriteLog()
         {
             var logService = _serviceProvider.GetService<LogService>();
-            logService.WriteLog(new Jack.RemoteLog.WebApi.Dtos.WriteLogModel { 
-            ApplicationContext = "UnitTest",
-            SourceContext = "test",
-            Content = "测试\r\n日志",
-            Level = Microsoft.Extensions.Logging.LogLevel.Debug,
-            Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds()
-            });
+            for(int i = 0; i < 1000; i++)
+            {
+                logService.WriteLog(new Jack.RemoteLog.WebApi.Dtos.WriteLogModel
+                {
+                    ApplicationContext = "UnitTest",
+                    SourceContext = "test",
+                    Content = i + "测试\r\n日志",
+                    Level = Microsoft.Extensions.Logging.LogLevel.Debug,
+                    Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds()
+                });
+            }
+            Thread.Sleep(3000);
         }
 
 
@@ -43,7 +48,7 @@ namespace UnitTest
         public void ReadLog()
         {
             var logService = _serviceProvider.GetService<LogService>();
-            var logs = logService.ReadLogs("UnitTest", "test", null, DateTimeOffset.FromFileTime(DateTime.Now.AddDays(-3).ToFileTime()).ToUnixTimeMilliseconds(), null, "日");
+            var logs = logService.ReadLogs("UnitTest", "test", Microsoft.Extensions.Logging.LogLevel.Debug, DateTimeOffset.FromFileTime(DateTime.Now.AddDays(-3).ToFileTime()).ToUnixTimeMilliseconds(), null, "测试");
         }
 
         [TestMethod]
@@ -56,7 +61,11 @@ namespace UnitTest
         [TestMethod]
         public void DeleteFile()
         {
+            var logService = _serviceProvider.GetService<LogService>();
+            var logs = logService.ReadLogs("TradeSystem.AssetServiceHost-test",null,null, DateTimeOffset.FromFileTime(DateTime.Now.AddDays(-3).ToFileTime()).ToUnixTimeMilliseconds(), null, null);
+
             ((IJob)new AutoDeleteLogs()).Execute(null).Wait();
+            Thread.Sleep(5000);
         }
 
     }

@@ -52,8 +52,8 @@ IScheduler scheduler = sf.GetScheduler().ConfigureAwait(false).GetAwaiter().GetR
 
 IJobDetail job = JobBuilder.Create<AutoDeleteLogs>().WithIdentity("job1", "mygroup").Build();
 
-var cronExpression = "* * * 1/1 * ?";
-ITrigger trigger = TriggerBuilder.Create().StartAt(DateTime.Now.AddSeconds(5)).WithCronSchedule(cronExpression).Build();
+var cronExpression = "0 5 1 * * ?";//每天1点05分执行
+ITrigger trigger = TriggerBuilder.Create().StartAt(DateTime.Now.AddSeconds(50)).WithCronSchedule(cronExpression).Build();
 
 scheduler.ScheduleJob(job, trigger);
 scheduler.Start();
