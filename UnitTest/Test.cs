@@ -56,7 +56,7 @@ namespace UnitTest
             Analyzer analyzer = new PanGuAnalyzer(); //MMSegAnalyzer //StandardAnalyzer
 
             //添加文本内容
-            var context = "Exchange:Exchange.BlockScan 收到BlockScan信息：{\"BlockNumber\":43325451,\"Txid\":\"04b394121551767dd7237d8fcaf84eab31f102f3bd03122b94bf784581217ec5\",\"Amount\":99999.0,\"Time\":\"1970-01-01T00:00:00+00:00\",\"Confirmations\":3,\"Valid\":true,\"PropertyId\":\"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t\",\"CoinType\":202,\"TronTransactionType\":\"TriggerSmartContract\",\"ContractRet\":\"SUCCESS\",\"Fee\":0.0,\"SenderAddress\":\"TBA6CypYJizwA9XdC7Ubgc5F1bxrQ7SqPt\",\"ReceivedAddress\":\"TVKCgFfuuzu11idqBjqMoSUDvmVQYnJWwY\",\"Coin\":\"USDT\"}";
+            var context = "Exchange:Exchange.BlockScan 收到BlockScan信息：{\"BlockNumber\":15524540,\"Txid\":\"0x760fe330799272ce557dadd0def7d5e1a01c079ee1a97629a9160f0ff0201299\",\"Amount\":496.0,\"Time\":\"2022-09-13T02:58:48+00:00\",\"Confirmations\":1,\"Valid\":true,\"PropertyId\":\"0xdac17f958d2ee523a2206206994597c13d831ec7\",\"Nonce\":0,\"CoinType\":102,\"GasPrice\":0.000000014710919597,\"Fee\":0.003047043354287416,\"SenderAddress\":\"0x28c6c06298d514db089934071355e5743bf21d60\",\"ReceivedAddress\":\"0xd6530793f846092226cca60a86d630e0f927432e\",\"Coin\":\"USDT\"}";
 
 
             IndexWriter iw;
@@ -103,7 +103,9 @@ namespace UnitTest
                 doc.AddInt64Field("date", timestamp, Field.Store.YES);
                 //将解析完成的内容存储
                 iw.AddDocument(doc , analyzer);
-               
+                iw.Commit();
+                iw.Flush(true, false);
+
             }
             iw.Dispose();
             Thread.Sleep(10000000);
@@ -111,18 +113,27 @@ namespace UnitTest
 
         private BooleanQuery AnalyzerKeyword(string keyword)
         {
-            StringBuilder queryStringBuilder = new StringBuilder();
-            string[] words = LuceneAnalyze.AnalyzerKey(keyword);
-
-            BooleanQuery queryOr = new BooleanQuery();
-
-            foreach ( var word in words)
+            BooleanQuery ret = new BooleanQuery();
+            var arr = keyword.Split(' ');
+            foreach (var str in arr)
             {
-                var termQuery = new TermQuery(new Term("body", word));
-                queryOr.Add(termQuery, Occur.SHOULD);
+                if (string.IsNullOrEmpty(str))
+                    continue;
+
+                StringBuilder queryStringBuilder = new StringBuilder();
+                string[] words = LuceneAnalyze.AnalyzerKey(str);
+
+                BooleanQuery queryMust = new BooleanQuery();
+
+                foreach (var word in words)
+                {
+                    var termQuery = new TermQuery(new Term("body", word));
+                    queryMust.Add(termQuery, Occur.MUST);
+                }
+                ret.Add(queryMust, Occur.SHOULD);
             }
 
-            return queryOr;
+            return ret;
         }
 
         [TestMethod]
@@ -131,7 +142,7 @@ namespace UnitTest
             var starttime = DateTimeOffset.Parse("2021-10-2").ToUnixTimeMilliseconds();
             var endtime = DateTimeOffset.Parse("2023-10-3").ToUnixTimeMilliseconds();
 
-            var keyword = "04b394121551767dd7237d8fcaf84eab31f102f3bd03122b94bf784581217ec5";
+            var keyword = "0xf4c8099ba028c659a98fc451ace55461314c57de0efd904ffb2fbb91d4318b5b 0x760fe330799272ce557dadd0def7d5e1a01c079ee1a97629a9160f0ff0201299";
 
             DirectoryInfo INDEX_DIR = new DirectoryInfo(AppContext.BaseDirectory + "index");
             Analyzer analyzer = new PanGuAnalyzer(); //MMSegAnalyzer //StandardAnalyzer

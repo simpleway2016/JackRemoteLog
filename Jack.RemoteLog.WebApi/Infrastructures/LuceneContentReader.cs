@@ -45,18 +45,27 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
         private BooleanQuery AnalyzerKeyword(string keyword)
         {
-            StringBuilder queryStringBuilder = new StringBuilder();
-            string[] words = LuceneAnalyze.AnalyzerKey(keyword);
-
-            BooleanQuery queryOr = new BooleanQuery();
-
-            foreach (var word in words)
+            BooleanQuery ret = new BooleanQuery();
+            var arr = keyword.Split(' ');
+            foreach (var str in arr)
             {
-                var termQuery = new TermQuery(new Term("Content", word));
-                queryOr.Add(termQuery, Occur.SHOULD);
+                if (string.IsNullOrEmpty(str))
+                    continue;
+
+                StringBuilder queryStringBuilder = new StringBuilder();
+                string[] words = LuceneAnalyze.AnalyzerKey(str);
+
+                BooleanQuery queryMust = new BooleanQuery();
+
+                foreach (var word in words)
+                {
+                    var termQuery = new TermQuery(new Term("body", word));
+                    queryMust.Add(termQuery, Occur.MUST);
+                }
+                ret.Add(queryMust, Occur.SHOULD);
             }
 
-            return queryOr;
+            return ret;
         }
 
         public LogItem[] Read(ISourceContextCollection sourceContextes, string sourceContext, Microsoft.Extensions.Logging.LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
