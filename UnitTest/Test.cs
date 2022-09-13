@@ -113,21 +113,6 @@ namespace UnitTest
 
         private BooleanQuery AnalyzerKeyword(string keyword, string field)
         {
-            try
-            {
-                while (keyword.StartsWith("*"))
-                {
-                    keyword = keyword.Substring(1);
-                }
-                while (keyword.EndsWith("*"))
-                {
-                    keyword = keyword.Substring(0, keyword.Length - 1);
-                }
-            }
-            catch
-            {
-            }
-
             BooleanQuery ret = new BooleanQuery();
             try
             {
@@ -322,7 +307,7 @@ namespace UnitTest
                         isClean = true;
                 }
             }
-            return keyword;
+            //return keyword;
             return QueryParser.Escape(keyword);
         }
         #endregion AnalyzerKey
