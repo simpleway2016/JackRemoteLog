@@ -111,7 +111,7 @@ namespace UnitTest
             Thread.Sleep(10000000);
         }
 
-        private BooleanQuery AnalyzerKeyword(string keyword)
+        private BooleanQuery AnalyzerKeyword(string keyword,string field)
         {
             BooleanQuery ret = new BooleanQuery();
             var arr = keyword.Split(' ');
@@ -127,7 +127,7 @@ namespace UnitTest
 
                 foreach (var word in words)
                 {
-                    var termQuery = new TermQuery(new Term("body", word));
+                    var termQuery = new TermQuery(new Term(field, word));
                     queryMust.Add(termQuery, Occur.MUST);
                 }
                 ret.Add(queryMust, Occur.SHOULD);
@@ -142,7 +142,7 @@ namespace UnitTest
             var starttime = DateTimeOffset.Parse("2021-10-2").ToUnixTimeMilliseconds();
             var endtime = DateTimeOffset.Parse("2023-10-3").ToUnixTimeMilliseconds();
 
-            var keyword = "0xf4c8099ba028c659a98fc451ace55461314c57de0efd904ffb2fbb91d4318b5b 0x760fe330799272ce557dadd0def7d5e1a01c079ee1a97629a9160f0ff0201299";
+            var keyword = "0x760fe330799272ce557dadd0def7d5e1a01c079ee1a97629a9160f0ff0201299";
 
             DirectoryInfo INDEX_DIR = new DirectoryInfo(AppContext.BaseDirectory + "index");
             Analyzer analyzer = new PanGuAnalyzer(); //MMSegAnalyzer //StandardAnalyzer
@@ -152,7 +152,7 @@ namespace UnitTest
                 IndexSearcher searcher = new IndexSearcher(indexer);
                 //ÅäÖÃÒª¼ìË÷µÄKey
                 QueryParser qp = new QueryParser(Lucene.Net.Util.LuceneVersion.LUCENE_48, "Content", analyzer);
-                Query query = AnalyzerKeyword(keyword);
+                Query query = AnalyzerKeyword(keyword , "body");
 
                 var rangeQuery_2_1 = NumericRangeQuery.NewInt64Range("date", starttime, endtime, true, true);
                 BooleanQuery booleanClauses = new BooleanQuery();

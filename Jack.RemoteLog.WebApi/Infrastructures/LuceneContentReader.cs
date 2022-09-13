@@ -59,7 +59,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
                 foreach (var word in words)
                 {
-                    var termQuery = new TermQuery(new Term("body", word));
+                    var termQuery = new TermQuery(new Term("Content", word));
                     queryMust.Add(termQuery, Occur.MUST);
                 }
                 ret.Add(queryMust, Occur.SHOULD);
