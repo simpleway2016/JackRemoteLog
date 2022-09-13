@@ -16,6 +16,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
         ILogger<LuceneContentWriter> _logger;
         bool _disposed;
         long? _deleteEndTime;
+        bool _isDirty;
         public LuceneContentWriter(string folderPath)
         {
             _logger = Global.ServiceProvider.GetService<ILogger<LuceneContentWriter>>();
@@ -34,25 +35,29 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             while (!_disposed)
             {
                 Thread.Sleep(2000);
-                try
+                if (_isDirty)
                 {
-                    if (_deleteEndTime != null)
+                    _isDirty = false;
+                    try
                     {
-                        var timequery = NumericRangeQuery.NewInt64Range("Timestamp", null, _deleteEndTime, false, false);
-                        _iw.DeleteDocuments(timequery);
-                        _deleteEndTime = null;
+                        if (_deleteEndTime != null)
+                        {
+                            var timequery = NumericRangeQuery.NewInt64Range("Timestamp", null, _deleteEndTime, false, false);
+                            _iw.DeleteDocuments(timequery);
+                            _deleteEndTime = null;
 
+                            _iw.Commit();
+                            _iw.Flush(true, true);
+                            continue;
+                        }
                         _iw.Commit();
-                        _iw.Flush(true, true);
-                        continue;
-                    }
-                    _iw.Commit();
-                    _iw.Flush(true, false);
+                        _iw.Flush(true, false);
 
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "");
+                    }
                 }
             }
         }
@@ -83,6 +88,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
             //将解析完成的内容存储
             _iw.AddDocument(doc , _analyzer);
+            _isDirty = true;
         }
 
         public void DeleteLogs(long endTIme)
