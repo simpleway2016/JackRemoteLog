@@ -98,8 +98,8 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                         var levelQuery = NumericRangeQuery.NewInt32Range("Level", (int)level, (int)level, true, true);
                         booleanClauses.Add(levelQuery, Occur.MUST);
                     }
-
-                    TopDocs tds = _searcher.Search(booleanClauses, Global.PageSize);
+                    Sort sort = new Sort(new SortField("Timestamp",  SortFieldType.INT64, false));
+                    TopDocs tds = _searcher.Search(booleanClauses, Global.PageSize, sort);
                     LogItem[] ret = new LogItem[tds.ScoreDocs.Length];
                     for (int i = 0; i < tds.ScoreDocs.Length; i++)
                     {
