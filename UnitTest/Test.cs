@@ -113,37 +113,45 @@ namespace UnitTest
 
         private BooleanQuery AnalyzerKeyword(string keyword, string field)
         {
-            BooleanQuery ret = new BooleanQuery();
-            var arr = keyword.Split(' ');
-            foreach (var str in arr)
+            try
             {
-                if (string.IsNullOrEmpty(str))
-                    continue;
-
-                StringBuilder queryStringBuilder = new StringBuilder();
-                string[] words = LuceneAnalyze.AnalyzerKey(str);
-
-                BooleanQuery queryMust = new BooleanQuery();
-
-                foreach (var word in words)
+                while (keyword.StartsWith("*"))
                 {
-                    if (word.EndsWith("*"))
-                    {
-                        var newWord = word.Substring(0, word.Length - 1);
-                        while (newWord.EndsWith("*"))
-                        {
-                            newWord = newWord.Substring(0, newWord.Length - 1);
-                        }
-                        var termQuery = new PrefixQuery(new Term(field, newWord));
-                        queryMust.Add(termQuery, Occur.MUST);
-                    }
-                    else
-                    {
-                        var termQuery = new TermQuery(new Term(field, word));
-                        queryMust.Add(termQuery, Occur.MUST);
-                    }
+                    keyword = keyword.Substring(1);
                 }
-                ret.Add(queryMust, Occur.SHOULD);
+                while (keyword.EndsWith("*"))
+                {
+                    keyword = keyword.Substring(0, keyword.Length - 1);
+                }
+            }
+            catch
+            {
+            }
+
+            BooleanQuery ret = new BooleanQuery();
+            try
+            {
+                var arr = keyword.Split(' ');
+                foreach (var str in arr)
+                {
+                    if (string.IsNullOrEmpty(str))
+                        continue;
+
+                    StringBuilder queryStringBuilder = new StringBuilder();
+                    string[] words = LuceneAnalyze.AnalyzerKey(str);
+
+                    BooleanQuery queryMust = new BooleanQuery();
+
+                    foreach (var word in words)
+                    {
+                        WildcardQuery query = new WildcardQuery(new Term(field, $"*{word}*"));
+                        queryMust.Add(query, Occur.MUST);
+                    }
+                    ret.Add(queryMust, Occur.SHOULD);
+                }
+            }
+            catch
+            {
             }
 
             return ret;
@@ -155,7 +163,7 @@ namespace UnitTest
             var starttime = DateTimeOffset.Parse("2021-10-2").ToUnixTimeMilliseconds();
             var endtime = DateTimeOffset.Parse("2023-10-3").ToUnixTimeMilliseconds();
 
-            var keyword = " ’µΩ*";
+            var keyword = "**oin+Typ**";
 
             DirectoryInfo INDEX_DIR = new DirectoryInfo(AppContext.BaseDirectory + "index");
             Analyzer analyzer = new PanGuAnalyzer(); //MMSegAnalyzer //StandardAnalyzer
