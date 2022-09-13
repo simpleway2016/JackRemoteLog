@@ -43,7 +43,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             }
         }
 
-        private BooleanQuery AnalyzerKeyword(string keyword)
+        private BooleanQuery AnalyzerKeyword(string keyword,string field)
         {
             BooleanQuery ret = new BooleanQuery();
             var arr = keyword.Split(' ');
@@ -59,7 +59,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
                 foreach (var word in words)
                 {
-                    var termQuery = new TermQuery(new Term("Content", word));
+                    var termQuery = new TermQuery(new Term(field, word));
                     queryMust.Add(termQuery, Occur.MUST);
                 }
                 ret.Add(queryMust, Occur.SHOULD);
@@ -83,7 +83,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                     BooleanQuery booleanClauses = new BooleanQuery();
                     if (string.IsNullOrEmpty(keyWord) == false)
                     {
-                        Query query = AnalyzerKeyword(keyWord);
+                        Query query = AnalyzerKeyword(keyWord, "Content");
                         booleanClauses.Add(query, Occur.MUST);
                     }
                     booleanClauses.Add(timequery, Occur.MUST);
