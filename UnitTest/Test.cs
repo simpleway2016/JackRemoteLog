@@ -155,7 +155,7 @@ namespace UnitTest
             var starttime = DateTimeOffset.Parse("2021-10-2").ToUnixTimeMilliseconds();
             var endtime = DateTimeOffset.Parse("2023-10-3").ToUnixTimeMilliseconds();
 
-            var keyword = " ’**";
+            var keyword = " ’µΩ*";
 
             DirectoryInfo INDEX_DIR = new DirectoryInfo(AppContext.BaseDirectory + "index");
             Analyzer analyzer = new PanGuAnalyzer(); //MMSegAnalyzer //StandardAnalyzer
