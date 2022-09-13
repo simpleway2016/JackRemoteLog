@@ -111,7 +111,7 @@ namespace UnitTest
             Thread.Sleep(10000000);
         }
 
-        private BooleanQuery AnalyzerKeyword(string keyword,string field)
+        private BooleanQuery AnalyzerKeyword(string keyword, string field)
         {
             BooleanQuery ret = new BooleanQuery();
             var arr = keyword.Split(' ');
@@ -127,8 +127,21 @@ namespace UnitTest
 
                 foreach (var word in words)
                 {
-                    var termQuery = new TermQuery(new Term(field, word));
-                    queryMust.Add(termQuery, Occur.MUST);
+                    if (word.EndsWith("*"))
+                    {
+                        var newWord = word.Substring(0, word.Length - 1);
+                        while (newWord.EndsWith("*"))
+                        {
+                            newWord = newWord.Substring(0, newWord.Length - 1);
+                        }
+                        var termQuery = new PrefixQuery(new Term(field, newWord));
+                        queryMust.Add(termQuery, Occur.MUST);
+                    }
+                    else
+                    {
+                        var termQuery = new TermQuery(new Term(field, word));
+                        queryMust.Add(termQuery, Occur.MUST);
+                    }
                 }
                 ret.Add(queryMust, Occur.SHOULD);
             }
@@ -142,7 +155,7 @@ namespace UnitTest
             var starttime = DateTimeOffset.Parse("2021-10-2").ToUnixTimeMilliseconds();
             var endtime = DateTimeOffset.Parse("2023-10-3").ToUnixTimeMilliseconds();
 
-            var keyword = "สี*";
+            var keyword = "สี**";
 
             DirectoryInfo INDEX_DIR = new DirectoryInfo(AppContext.BaseDirectory + "index");
             Analyzer analyzer = new PanGuAnalyzer(); //MMSegAnalyzer //StandardAnalyzer

@@ -43,7 +43,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             }
         }
 
-        private BooleanQuery AnalyzerKeyword(string keyword,string field)
+        private BooleanQuery AnalyzerKeyword(string keyword, string field)
         {
             BooleanQuery ret = new BooleanQuery();
             var arr = keyword.Split(' ');
@@ -59,8 +59,21 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
                 foreach (var word in words)
                 {
-                    var termQuery = new TermQuery(new Term(field, word));
-                    queryMust.Add(termQuery, Occur.MUST);
+                    if (word.EndsWith("*"))
+                    {
+                        var newWord = word.Substring(0, word.Length - 1);
+                        while (newWord.EndsWith("*"))
+                        {
+                            newWord = newWord.Substring(0, newWord.Length - 1);
+                        }
+                        var termQuery = new PrefixQuery(new Term(field, newWord));
+                        queryMust.Add(termQuery, Occur.MUST);
+                    }
+                    else
+                    {
+                        var termQuery = new TermQuery(new Term(field, word));
+                        queryMust.Add(termQuery, Occur.MUST);
+                    }
                 }
                 ret.Add(queryMust, Occur.SHOULD);
             }
@@ -71,7 +84,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
         public LogItem[] Read(ISourceContextCollection sourceContextes, string sourceContext, Microsoft.Extensions.Logging.LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
         {
             try
-            {               
+            {
 
                 using (var indexer = DirectoryReader.Open(FSDirectory.Open(INDEX_DIR)))
                 {
@@ -98,7 +111,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                         var levelQuery = NumericRangeQuery.NewInt32Range("Level", (int)level, (int)level, true, true);
                         booleanClauses.Add(levelQuery, Occur.MUST);
                     }
-                    Sort sort = new Sort(new SortField("Timestamp",  SortFieldType.INT64, false));
+                    Sort sort = new Sort(new SortField("Timestamp", SortFieldType.INT64, false));
                     TopDocs tds = _searcher.Search(booleanClauses, Global.PageSize, sort);
                     LogItem[] ret = new LogItem[tds.ScoreDocs.Length];
                     for (int i = 0; i < tds.ScoreDocs.Length; i++)
