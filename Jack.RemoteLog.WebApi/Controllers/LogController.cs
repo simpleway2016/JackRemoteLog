@@ -47,7 +47,7 @@ namespace Jack.RemoteLog.WebApi.Controllers
         [HttpGet]
         public string[] GetSourceContextes(string applicationContext)
         {
-            return _logService.GetSourceContextes(applicationContext);
+            return _logService.GetSourceContextes(applicationContext).OrderBy(m=>m).ToArray();
         }
 
         [HttpGet]
