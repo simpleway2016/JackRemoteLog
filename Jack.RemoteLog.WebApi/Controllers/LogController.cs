@@ -53,7 +53,7 @@ namespace Jack.RemoteLog.WebApi.Controllers
         [HttpGet]
         public string[] GetApplications()
         {
-            return _logService.GetApplications();
+            return _logService.GetApplications().OrderBy(m => m).ToArray();
         }
     }
 }
