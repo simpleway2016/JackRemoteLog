@@ -20,6 +20,7 @@ using System.Text;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Jack.RemoteLog.WebApi.Dtos;
 using Lucene.Net.QueryParsers.Classic;
+using Lucene.Net.Util;
 
 namespace UnitTest
 {
@@ -165,20 +166,24 @@ namespace UnitTest
                 booleanClauses.Add(query, Occur.MUST);
                 //booleanClauses.Add(rangeQuery_2_1, Occur.MUST);
 
+                int id = 10;
+                BytesRef bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
+                NumericUtils.Int32ToPrefixCoded(id, 0, bytes);
+                booleanClauses.Add(new TermQuery(new Term("id", bytes)) , Occur.MUST);
 
                 //查询分词内容，以及设置返回检索结果集数量
                 TopDocs tds = searcher.Search(booleanClauses, 100);
                 Debug.WriteLine("检索结果数: " + tds.TotalHits);
-                //foreach (ScoreDoc sd in tds.ScoreDocs)
-                //{
-                //    //查询匹配分数
-                //    Console.WriteLine(sd.Score);
+                foreach (ScoreDoc sd in tds.ScoreDocs)
+                {
+                    //查询匹配分数
+                    Debug.WriteLine(sd.Score);
 
-                //    Document doc = searcher.Doc(sd.Doc);
-                //    Console.WriteLine(doc.Get("body"));
-                //    Console.WriteLine(doc.Get("id"));
-                //    var date = doc.Get("date");
-                //}
+                    Document doc = searcher.Doc(sd.Doc);
+                    Debug.WriteLine(doc.Get("body"));
+                    Debug.WriteLine(doc.Get("id"));
+                    var date = doc.Get("date");
+                }
             }
         }
 

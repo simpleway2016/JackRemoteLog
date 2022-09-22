@@ -11,6 +11,7 @@ using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 using Quartz.Logging;
 using System;
 using Lucene.Net.QueryParsers.Classic;
+using Lucene.Net.Util;
 
 namespace Jack.RemoteLog.WebApi.Infrastructures
 {
@@ -95,14 +96,21 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                     booleanClauses.Add(timequery, Occur.MUST);
                     if (findSourceId != 0)
                     {
-                        var sourceidQuery = NumericRangeQuery.NewInt32Range("SourceContextId", findSourceId, findSourceId, true, true);
-                        booleanClauses.Add(sourceidQuery, Occur.MUST);
+                        //var sourceidQuery = NumericRangeQuery.NewInt32Range("SourceContextId", findSourceId, findSourceId, true, true);
+                        //booleanClauses.Add(sourceidQuery, Occur.MUST);
+
+                        BytesRef bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
+                        NumericUtils.Int32ToPrefixCoded(findSourceId, 0, bytes);
+                        booleanClauses.Add(new TermQuery(new Term("SourceContextId", bytes)), Occur.MUST);
                     }
 
                     if (level != null)
                     {
-                        var levelQuery = NumericRangeQuery.NewInt32Range("Level", (int)level, (int)level, true, true);
-                        booleanClauses.Add(levelQuery, Occur.MUST);
+                        //var levelQuery = NumericRangeQuery.NewInt32Range("Level", (int)level, (int)level, true, true);
+                        //booleanClauses.Add(levelQuery, Occur.MUST);
+                        BytesRef bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
+                        NumericUtils.Int32ToPrefixCoded((int)level, 0, bytes);
+                        booleanClauses.Add(new TermQuery(new Term("Level", bytes)), Occur.MUST);
                     }
                     Sort sort = new Sort(new SortField("Timestamp", SortFieldType.INT64, false));
                     TopDocs tds = _searcher.Search(booleanClauses, Global.PageSize, sort);
