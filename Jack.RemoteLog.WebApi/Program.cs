@@ -6,6 +6,7 @@ using Jack.RemoteLog.WebApi.AutoMissions;
 using Microsoft.Extensions.FileProviders;
 using Quartz.Impl.AdoJobStore.Common;
 using System.IO;
+using Jack.RemoteLog.WebApi.Controllers;
 
 Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 ThreadPool.GetMinThreads(out int w, out int c);
@@ -50,6 +51,16 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseAuthorization();
 app.UseCors("abc");
 app.MapControllers();
+
+var logService = app.Services.GetService<LogService>();
+app.Use((context, next) => {
+    if (context.Request.Path.ToString().Contains("/WriteLog"))
+    {
+        //如果直接请求controller里面post方法，会导致查询变慢，访问的线程越多就越慢，原因不明
+        return LogController.HandleWriteLog(context, logService);
+    }
+    return next();
+});
 
 ISchedulerFactory sf = new StdSchedulerFactory();
 IScheduler scheduler = sf.GetScheduler().ConfigureAwait(false).GetAwaiter().GetResult();

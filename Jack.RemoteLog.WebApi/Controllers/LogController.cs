@@ -1,6 +1,8 @@
 using Jack.RemoteLog.WebApi.Applications;
 using Jack.RemoteLog.WebApi.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection;
+using System.Text;
 
 namespace Jack.RemoteLog.WebApi.Controllers
 {
@@ -16,19 +18,30 @@ namespace Jack.RemoteLog.WebApi.Controllers
         }
 
         [HttpGet]
+        public string GetVersion()
+        {
+            return Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        }
+
+        [HttpGet]
         public int GetPageSize()
         {
             return Global.PageSize;
         }
 
-        [HttpPost]
-        public void WriteLog(WriteLogModel writeLogModel)
+        public static async Task HandleWriteLog(HttpContext context,LogService logService)
         {
+
+            byte[] postContent = new byte[(int)context.Request.ContentLength];
+            await context.Request.Body.ReadAsync(postContent, 0, postContent.Length);
+            var text = Encoding.UTF8.GetString(postContent);
+
+            var writeLogModel = System.Text.Json.JsonSerializer.Deserialize<WriteLogModel>(text);
             if (writeLogModel.SourceContext.Contains("\r") || writeLogModel.SourceContext.Contains("\n"))
             {
                 writeLogModel.SourceContext = writeLogModel.SourceContext.Replace("\r", "-").Replace("\n", "-");
             }
-            _logService.WriteLog(writeLogModel);
+            logService.WriteLog(writeLogModel);
         }
 
         [HttpGet]
