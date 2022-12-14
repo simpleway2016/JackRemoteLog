@@ -8,7 +8,11 @@ using Quartz.Impl.AdoJobStore.Common;
 using System.IO;
 
 Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
+ThreadPool.GetMinThreads(out int w, out int c);
+if(w < 500 || c < 500)
+{
+    ThreadPool.SetMinThreads(500, 500);
+}
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

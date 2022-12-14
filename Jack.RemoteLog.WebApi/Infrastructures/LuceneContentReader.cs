@@ -88,11 +88,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
                     var timequery = NumericRangeQuery.NewInt64Range("Timestamp", startTimeStamp, endTimeStamp, true, true);
                     BooleanQuery booleanClauses = new BooleanQuery();
-                    if (string.IsNullOrEmpty(keyWord) == false)
-                    {
-                        Query query = AnalyzerKeyword(keyWord, "Content");
-                        booleanClauses.Add(query, Occur.MUST);
-                    }
+                   
                     booleanClauses.Add(timequery, Occur.MUST);
                     if (findSourceId != 0)
                     {
@@ -112,6 +108,13 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                         NumericUtils.Int32ToPrefixCoded((int)level, 0, bytes);
                         booleanClauses.Add(new TermQuery(new Term("Level", bytes)), Occur.MUST);
                     }
+
+                    if (string.IsNullOrEmpty(keyWord) == false)
+                    {
+                        Query query = AnalyzerKeyword(keyWord, "Content");
+                        booleanClauses.Add(query, Occur.MUST);
+                    }
+
                     Sort sort = new Sort(new SortField("Timestamp", SortFieldType.INT64, false));
                     TopDocs tds = _searcher.Search(booleanClauses, Global.PageSize, sort);
                     LogItem[] ret = new LogItem[tds.ScoreDocs.Length];
