@@ -60,15 +60,16 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                     _isDirty = false;
                     try
                     {
-                        bool applyAllDelete = false;
-
                         if (_deleteEndTime != null)
                         {
                             var timequery = NumericRangeQuery.NewInt64Range("Timestamp", null, _deleteEndTime, false, false);
                             _iw.DeleteDocuments(timequery);
                             _deleteEndTime = null;
 
-                            applyAllDelete = true;
+                            _iw.Flush(true, true);
+                            _iw.Commit();
+                            _iw.DeleteUnusedFiles();
+                            _iw.ForceMergeDeletes();
                         }
 
                         int count = 0;
@@ -91,9 +92,8 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                                 if(count > 1000)
                                 {
                                     count = 0;
+                                    _iw.Flush(true, false);
                                     _iw.Commit();
-                                    _iw.Flush(true, applyAllDelete);
-                                    applyAllDelete = false;
                                 }
                             }
                             catch (OutOfMemoryException)
@@ -104,8 +104,8 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                             }
                         }
 
+                        _iw.Flush(true, false);
                         _iw.Commit();
-                        _iw.Flush(true, applyAllDelete);
 
                     }
                     catch (Exception ex)
@@ -139,6 +139,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
         public void DeleteLogs(long endTIme)
         {
             _deleteEndTime = endTIme;
+            _isDirty = true;
         }
     }
 }

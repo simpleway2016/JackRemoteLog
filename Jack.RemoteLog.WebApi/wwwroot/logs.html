@@ -252,7 +252,7 @@
                 <input placeholder="开始时间" v-model="startTime" />
                 <input placeholder="结束时间" v-model="endTime" />&nbsp;&nbsp;
                 <span v-if="isBusy">正在加载...</span>
-                当前显示{{logs.length}}条 Error:<span class="err">{{errCount}}</span>条
+                当前显示{{logs.length}}条 Error:<span class="err">{{errCount}}</span>条 共{{totalHits}}条
             </div>
             <div class="logpanel flex-1">
                 <div v-for="log in logs" class="logitem" :class="{err:log.level==4}">
@@ -291,6 +291,7 @@
         selectedSourceContext: undefined,
         level: "",
         logs: [],
+        totalHits:0,
         errCount:0,
         startTime: undefined,
         endTime: undefined,
@@ -426,7 +427,11 @@
                     divLogPanel.children[divLogPanel.children.length - 1].scrollIntoView();
             };
             model.logs = res.data;
-           
+
+            if (res.data.length > 0)
+                model.totalHits = res.data[0].totalHits;
+            else
+                model.totalHits = 0;
 
             if (res.data.length == 0) {
                 model.hasMore = false;

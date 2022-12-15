@@ -132,6 +132,8 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                             SourceContext = sourceContext != null ? sourceContext : _sourceContextReader.GetSourceContext(sourceContextId),
                             Timestamp = timestamp
                         };
+                        if (i == 0)
+                            ret[i].TotalHits = tds.TotalHits;
                     }
                     return ret;
                 }
