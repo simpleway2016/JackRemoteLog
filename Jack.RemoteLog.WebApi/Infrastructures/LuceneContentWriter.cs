@@ -36,6 +36,9 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             {
                 _iw.Dispose();
                 _iw = null;
+
+                _analyzer?.Dispose();
+                _analyzer = null;
             }
 
             DirectoryInfo INDEX_DIR = new DirectoryInfo(_folderPath);
