@@ -508,7 +508,7 @@
                     divLogPanel.children[divLogPanel.children.length - 1].scrollIntoView();
             };
             if (res.data.length > 0)
-                model.totalHits = res.data[0].totalHits;
+                model.totalHits = model.logs.length + res.data[0].totalHits;
 
             model.logs = [...model.logs, ...res.data];
             if (res.data.length == 0) {
