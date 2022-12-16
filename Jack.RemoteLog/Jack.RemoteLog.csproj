@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.0.10</Version>
+    <Version>1.0.0.11</Version>
     <Authors>Jack.T</Authors>
     <Description>配置文件：
   "Logging": {
@@ -24,6 +24,8 @@
 依赖注入：
             _services.AddLogging(builder =&gt;
             {
+                builder.AddConfiguration(configuration.GetSection("Logging"));
+                builder.AddConsole();
                 builder.UseJackRemoteLogger(configuration);
             });</Description>
   </PropertyGroup>
@@ -33,7 +35,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Way.Lib" Version="2.0.9.36" />
+    <PackageReference Include="Way.Lib" Version="2.0.10.15" />
   </ItemGroup>
 
 </Project>
