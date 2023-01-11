@@ -13,6 +13,7 @@ using System;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Util;
 
+
 namespace Jack.RemoteLog.WebApi.Infrastructures
 {
     public class LuceneContentReader : ILogContentReader
@@ -44,8 +45,9 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             }
         }
 
-        private BooleanQuery AnalyzerKeyword(string keyword, string field)
+        private BooleanQuery AnalyzerKeyword(string keyword, string field, out List<string> outputWords)
         {
+            outputWords = new List<string>();
             BooleanQuery ret = new BooleanQuery();
             try
             {
@@ -62,6 +64,9 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
                     foreach (var word in words)
                     {
+                        if (outputWords.Contains(word) == false)
+                            outputWords.Add(word);
+
                         WildcardQuery query = new WildcardQuery(new Term(field, $"*{word}*"));
                         queryMust.Add(query, Occur.MUST);
                     }
@@ -88,7 +93,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
                     var timequery = NumericRangeQuery.NewInt64Range("Timestamp", startTimeStamp, endTimeStamp, true, true);
                     BooleanQuery booleanClauses = new BooleanQuery();
-                   
+
                     booleanClauses.Add(timequery, Occur.MUST);
                     if (findSourceId != 0)
                     {
@@ -109,9 +114,10 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                         booleanClauses.Add(new TermQuery(new Term("Level", bytes)), Occur.MUST);
                     }
 
+                    List<string> words = null;
                     if (string.IsNullOrEmpty(keyWord) == false)
                     {
-                        Query query = AnalyzerKeyword(keyWord, "Content");
+                        Query query = AnalyzerKeyword(keyWord, "Content", out words);
                         booleanClauses.Add(query, Occur.MUST);
                     }
 
@@ -132,9 +138,18 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                             SourceContext = sourceContext != null ? sourceContext : _sourceContextReader.GetSourceContext(sourceContextId),
                             Timestamp = timestamp
                         };
+
+                        if (ret[i].Content != null && words != null)
+                        {
+                            foreach (var word in words)
+                            {
+                                ret[i].Content = ret[i].Content.Replace(word, $"<font color='#209aed'><b>{word}</b></font>");
+                            }
+                        }
                         if (i == 0)
                             ret[i].TotalHits = tds.TotalHits;
                     }
+                    words?.Clear();
                     return ret;
                 }
             }
