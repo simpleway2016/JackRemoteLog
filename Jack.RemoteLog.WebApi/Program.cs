@@ -106,5 +106,9 @@ scheduler.Start();
 
 var logchannelRoute = app.Services.GetService<LogChannelRoute>();
 
+var logger = app.Services.GetService<ILogger<Program>>();
+logger.LogInformation("AppSettings Path£º{0}" , appSettingPath);
+logger.LogInformation($"Version£º{typeof(Global).Assembly.GetName().Version}");
+
 app.Run();
 logchannelRoute.Dispose();
