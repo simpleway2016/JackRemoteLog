@@ -7,6 +7,7 @@ using Microsoft.Extensions.FileProviders;
 using Quartz.Impl.AdoJobStore.Common;
 using System.IO;
 using Jack.RemoteLog.WebApi.Controllers;
+using JMS.Common;
 
 Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 ThreadPool.GetMinThreads(out int w, out int c);
@@ -14,10 +15,40 @@ if(w < 500 || c < 500)
 {
     ThreadPool.SetMinThreads(500, 500);
 }
+
+CommandArgParser cmdArg = new CommandArgParser(args);
+var appSettingPath = cmdArg.TryGetValue<string>("-s");
+
+if (appSettingPath == null)
+    appSettingPath = "appsettings.json";
+
+if (appSettingPath == "share")
+{
+    appSettingPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+    appSettingPath = Path.Combine(appSettingPath, "jack.remotelog.webapi");
+    if (Directory.Exists(appSettingPath) == false)
+    {
+        Directory.CreateDirectory(appSettingPath);
+    }
+    appSettingPath = Path.Combine(appSettingPath, "appsettings.json");
+    if (File.Exists(appSettingPath) == false)
+    {
+        File.Copy("./appsettings.json", appSettingPath);
+    }
+}
+
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
+{
+    config.AddJsonFile(appSettingPath,
+                       optional: true,
+                       reloadOnChange: true);
+});
 
 // Add services to the container.
 Global.Configuration = builder.Configuration;
+
 builder.Services.AddControllers();
 
 builder.Services.AddSingleton<LogChannelRoute>();
