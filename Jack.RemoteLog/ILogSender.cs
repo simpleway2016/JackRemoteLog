@@ -8,6 +8,6 @@ namespace Jack.RemoteLog
 {
     internal interface ILogSender
     {
-        void Send(LogItem logitem);
+        Task Send(LogItem logitem, HttpClient httpClient);
     }
 }

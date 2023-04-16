@@ -41,7 +41,9 @@ namespace UnitTest
 
             _services.AddLogging(builder =>
             {
-                builder.UseJackRemoteLogger(Global.Configuration, "MyApplicationContext");
+                builder.UseJackRemoteLogger(Global.Configuration, new Options { 
+                ApplicationContext = "MyApplicationContext"
+                });
             });
             _services.AddScoped<TestObject>();
 

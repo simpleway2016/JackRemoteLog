@@ -23,8 +23,9 @@ namespace Jack.RemoteLog
         static QueueLogger()
         {
             var sender = new RemoteLogSender();
-            new Thread(() =>
+            new Thread(async () =>
             {
+                using var httpClient = new HttpClient();
                 while (true)
                 {
                     if (Queue.TryDequeue(out LogItem item))
@@ -33,7 +34,7 @@ namespace Jack.RemoteLog
                         {
                             try
                             {
-                                sender.Send(item);
+                                await sender.Send(item, httpClient);
                                 break;
                             }
                             catch

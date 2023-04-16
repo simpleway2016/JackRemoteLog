@@ -8,6 +8,10 @@ using Quartz.Impl.AdoJobStore.Common;
 using System.IO;
 using Jack.RemoteLog.WebApi.Controllers;
 using JMS.Common;
+using Microsoft.Extensions.Primitives;
+using System.Text;
+using JMS;
+using Jack.RemoteLog.WebApi.Dtos;
 
 Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 ThreadPool.GetMinThreads(out int w, out int c);
@@ -83,12 +87,44 @@ app.UseCors("abc");
 app.MapControllers();
 
 var logService = app.Services.GetService<LogService>();
+var userInfos = app.Configuration.GetSection("Users").GetNewest<UserInfo[]>();
+
 app.Use((context, next) => {
+    bool pass = false;
+    bool iswriting = context.Request.Path.ToString().Contains("/WriteLog");
+    
+    if (userInfos.Current == null || userInfos.Current.Length == 0)
+    {
+        pass = true;
+    }
+    else if (context.Request.Headers.TryGetValue("Authorization", out StringValues authorization))
+    {
+        var base64 = authorization.ToString().Substring(6);
+        var name_pwds = Encoding.UTF8.GetString(Convert.FromBase64String(base64)).Split(':');
+        var user = userInfos.Current?.FirstOrDefault(m => string.Equals(name_pwds[0], m.Name, StringComparison.OrdinalIgnoreCase));
+        if (user == null || user.Password != name_pwds[1] || (iswriting && user.Writeable == false))
+        {
+            //不通过身份验证
+        }
+        else
+        {
+            pass = true;
+        }
+    }
+
+    if (!pass)
+    {
+        context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"Welcome to Jack.RemoteLog\"");
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    }
+
     if (context.Request.Path.ToString().Contains("/WriteLog"))
     {
         //如果直接请求controller里面post方法，会导致查询变慢，访问的线程越多就越慢，原因不明
         return LogController.HandleWriteLog(context, logService);
     }
+
     return next();
 });
 

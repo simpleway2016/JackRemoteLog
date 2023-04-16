@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -46,29 +47,26 @@ namespace Jack.RemoteLog
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
-        public static void UseJackRemoteLogger(this ILoggingBuilder builder, IConfiguration configuration,string applicationContext)
+        public static void UseJackRemoteLogger(this ILoggingBuilder builder, IConfiguration configuration,Options options)
         {
+            if (options == null)
+                throw new ArgumentException("options is null");
+
             Global.Configuration = configuration;
+            if(string.IsNullOrWhiteSpace(options.ApplicationContext))
+            {
+                options.ApplicationContext = configuration["Logging:ContextName"];
+            }
+            if (!string.IsNullOrEmpty(options.UserName))
+            {
+                var authorizationStr = $"{options.UserName}:{options.Password}";
+                Global.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(authorizationStr)));
+            }
 
             ConfigurationChangeCallback(builder);
 
-            builder.AddProvider(new AsyncLoggerProvider(applicationContext));
+            builder.AddProvider(new AsyncLoggerProvider(options.ApplicationContext));
         }
-
-        /// <summary>
-        /// 使用Jack.RemoteLog异步远程日志
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <returns></returns>
-        //public static IHostBuilder UseJackRemoteLogger(this IHostBuilder builder, IConfiguration configuration, string applicationContext)
-        //{
-        //    Global.Configuration = configuration;
-        //    builder.ConfigureServices((cx,services) =>
-        //    {
-        //        services.AddSingleton<ILoggerFactory>(new AsyncLoggerFactory(applicationContext));
-        //    });
-        //    return builder;
-        //}
 
     }
 }
