@@ -12,6 +12,7 @@ using Microsoft.Extensions.Primitives;
 using System.Text;
 using JMS;
 using Jack.RemoteLog.WebApi.Dtos;
+using Jack.RemoteLog.WebApi.Domains;
 
 Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 ThreadPool.GetMinThreads(out int w, out int c);
@@ -88,6 +89,7 @@ app.MapControllers();
 
 var logService = app.Services.GetService<LogService>();
 var userInfos = app.Configuration.GetSection("Users").GetNewest<UserInfo[]>();
+var errorUserMarker = new ErrorUserMarker();
 
 app.Use((context, next) => {
     bool pass = false;
@@ -99,16 +101,26 @@ app.Use((context, next) => {
     }
     else if (context.Request.Headers.TryGetValue("Authorization", out StringValues authorization))
     {
+        var ip = context.Connection.RemoteIpAddress.ToString();
+        if (!errorUserMarker.CheckUserIp(ip))
+        {
+            context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"Welcome to Jack.RemoteLog\"");
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        }
+
         var base64 = authorization.ToString().Substring(6);
         var name_pwds = Encoding.UTF8.GetString(Convert.FromBase64String(base64)).Split(':');
         var user = userInfos.Current?.FirstOrDefault(m => string.Equals(name_pwds[0], m.Name, StringComparison.OrdinalIgnoreCase));
         if (user == null || user.Password != name_pwds[1] || (iswriting && user.Writeable == false))
         {
             //不通过身份验证
+            errorUserMarker.Error(ip);
         }
         else
         {
             pass = true;
+            errorUserMarker.Clear(ip);
         }
     }
 
