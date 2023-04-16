@@ -13,10 +13,13 @@ using System.Text;
 using JMS;
 using Jack.RemoteLog.WebApi.Dtos;
 using Jack.RemoteLog.WebApi.Domains;
+using Org.BouncyCastle.X509;
+using System.Security.Cryptography.X509Certificates;
+using System.Reflection.PortableExecutable;
 
 Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 ThreadPool.GetMinThreads(out int w, out int c);
-if(w < 500 || c < 500)
+if (w < 500 || c < 500)
 {
     ThreadPool.SetMinThreads(500, 500);
 }
@@ -50,6 +53,19 @@ builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
                        optional: true,
                        reloadOnChange: true);
 });
+
+var certPath = builder.Configuration["SSL:Cert"];
+var pwd = builder.Configuration["SSL:Password"];
+if (!string.IsNullOrWhiteSpace(certPath))
+{
+    // Configure Kestrel server
+    builder.WebHost.ConfigureKestrel(serverOptions =>
+    {
+        // Set up server options here
+        var x509ca = new X509Certificate2(certPath, pwd);
+        serverOptions.ConfigureEndpointDefaults(c => c.UseHttps(x509ca));
+    });
+}
 
 // Add services to the container.
 Global.Configuration = builder.Configuration;
@@ -91,10 +107,11 @@ var logService = app.Services.GetService<LogService>();
 var userInfos = app.Configuration.GetSection("Users").GetNewest<UserInfo[]>();
 var errorUserMarker = new ErrorUserMarker();
 
-app.Use((context, next) => {
+app.Use((context, next) =>
+{
     bool pass = false;
     bool iswriting = context.Request.Path.ToString().Contains("/WriteLog");
-    
+
     if (userInfos.Current == null || userInfos.Current.Length == 0)
     {
         pass = true;
@@ -157,7 +174,7 @@ scheduler.Start();
 var logchannelRoute = app.Services.GetService<LogChannelRoute>();
 
 var logger = app.Services.GetService<ILogger<Program>>();
-logger.LogInformation("AppSettings Path: {0}" , appSettingPath);
+logger.LogInformation("AppSettings Path: {0}", appSettingPath);
 logger.LogInformation($"Version:{typeof(Global).Assembly.GetName().Version}");
 
 app.Run();

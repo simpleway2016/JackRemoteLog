@@ -25,7 +25,9 @@ namespace Jack.RemoteLog
             var sender = new RemoteLogSender();
             new Thread(async () =>
             {
-                using var httpClient = new HttpClient();
+                var handler = new HttpClientHandler();
+                handler.ServerCertificateCustomValidationCallback = delegate { return true; };
+                using var httpClient = new HttpClient(handler);
                 while (true)
                 {
                     if (Queue.TryDequeue(out LogItem item))
