@@ -74,10 +74,9 @@ Global.ServiceProvider = app.Services;
 // Configure the HTTP request pipeline.
 
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(AppDomain.CurrentDomain.BaseDirectory + "wwwroot"),
-});
+app.UseStaticFiles();
+//¿ªÆôindex.html
+app.UseFileServer();
 
 app.UseAuthorization();
 app.UseCors("abc");
