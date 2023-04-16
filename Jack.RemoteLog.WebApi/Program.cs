@@ -115,7 +115,10 @@ app.Use((context, next) => {
         if (user == null || user.Password != name_pwds[1] || (iswriting && user.Writeable == false))
         {
             //不通过身份验证
-            errorUserMarker.Error(ip);
+            if (user == null || user.Password != name_pwds[1])
+            {
+                errorUserMarker.Error(ip);
+            }
         }
         else
         {
