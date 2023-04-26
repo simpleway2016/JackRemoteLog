@@ -6,17 +6,11 @@ using System.Threading.Tasks;
 
 namespace Jack.RemoteLog
 {
-    public class AsyncLoggerProvider : Microsoft.Extensions.Logging.ILoggerProvider
+    class AsyncLoggerProvider : Microsoft.Extensions.Logging.ILoggerProvider
     {
         string _applicationContext;
         public AsyncLoggerProvider(string applicationContext)
         {
-            _applicationContext = applicationContext;
-        }
-
-        public AsyncLoggerProvider(string serverUrl, string applicationContext)
-        {
-            Global.ServerUrl = serverUrl;
             _applicationContext = applicationContext;
         }
 

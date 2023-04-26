@@ -15,7 +15,7 @@ namespace Jack.RemoteLog
         public string Content { get; set; }
     }
 
-    class QueueLogger : Microsoft.Extensions.Logging.ILogger
+    public class QueueLogger : Microsoft.Extensions.Logging.ILogger
     {
         string _applicationContext;
 
@@ -65,6 +65,13 @@ namespace Jack.RemoteLog
 
         public QueueLogger(string applicationContext, string categoryName)
         {
+            this._applicationContext = applicationContext;
+            this._categoryName = categoryName;
+
+        }
+        public QueueLogger(string serverUrl, string applicationContext, string categoryName)
+        {
+            Global.ServerUrl = serverUrl;
             this._applicationContext = applicationContext;
             this._categoryName = categoryName;
 
