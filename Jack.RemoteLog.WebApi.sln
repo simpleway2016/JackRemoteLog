@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTest", "UnitTest\UnitTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jack.RemoteLog", "Jack.RemoteLog\Jack.RemoteLog.csproj", "{843FE690-5543-4F45-BFDD-B3C3196D619D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWebApi", "TestWebApi\TestWebApi.csproj", "{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestWebApi", "TestWebApi\TestWebApi.csproj", "{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jack.RemoteLog.Framework", "Jack.RemoteLog.Framework\Jack.RemoteLog.Framework.csproj", "{CF002104-BABC-4A18-9BB4-05083801F58B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B6B88F7-F20C-4CA4-A2D5-31DC560A23F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF002104-BABC-4A18-9BB4-05083801F58B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF002104-BABC-4A18-9BB4-05083801F58B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF002104-BABC-4A18-9BB4-05083801F58B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF002104-BABC-4A18-9BB4-05083801F58B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
