@@ -257,7 +257,7 @@
             <div class="logpanel flex-1">
                 <div v-for="log in logs" class="logitem" :class="{err:log.level==4}">
                     <div>{{showTime(log.timestamp)}} [{{showLevel(log.level)}}] {{log.sourceContext}}</div>
-                    <div v-html="log.content"></div>
+                    <div v-html="log.content.replace(/\n/g , '<br>')"></div>
                 </div>
                
             </div>
