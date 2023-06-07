@@ -20,6 +20,21 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
         long? _deleteEndTime;
         bool _isDirty;
         string _folderPath;
+        static bool AppExited;
+        static ConcurrentDictionary<LuceneContentWriter, bool> AllWriters = new ConcurrentDictionary<LuceneContentWriter, bool>();
+
+        static LuceneContentWriter()
+        {
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+        }
+
+        private static void CurrentDomain_ProcessExit(object? sender, EventArgs e)
+        {
+            AppExited = true;
+            while (AllWriters.Count > 0)
+                Thread.Sleep(100);
+        }
+
         public LuceneContentWriter(string folderPath)
         {
             _folderPath = folderPath;
@@ -52,7 +67,8 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 
         void commitThread()
         {
-            while (!_disposed)
+            AllWriters[this] = true;
+            while (!_disposed && !AppExited)
             {
                 Thread.Sleep(2000);
                 if (_isDirty)
@@ -73,7 +89,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                         }
 
                         int count = 0;
-                        while(_writingQueue.TryDequeue(out WriteLogModel writeLogModel))
+                        while(!AppExited && _writingQueue.TryDequeue(out WriteLogModel writeLogModel))
                         {
                             //存储文档添加索引
                             Document doc = new Document();
@@ -114,6 +130,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                     }
                 }
             }
+            AllWriters.TryRemove(this, out bool o);
         }
 
         public void Dispose()
