@@ -1,5 +1,5 @@
 # JackRemoteLog
-JackRemoteLog 是一个基于.Net，支持全文检索的远程日志组件
+JackRemoteLog 是一个基于.Net，支持全文检索的远程日志组件，支持链路追踪功能
 
 Jack.RemoteLog.WebApi 是服务器端。
 
@@ -29,3 +29,4 @@ Jack.RemoteLog.WebApi 是服务器端。
                 builder.UseJackRemoteLogger(configuration);
             });
 ```
+链路追踪功能：http://jms.jacktan.cn/#/doc/32/3
