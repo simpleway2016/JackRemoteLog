@@ -315,10 +315,10 @@
             },
             autoLoadMore: function (newVal) {
                 if (newVal) {
-                    autoLoadMore_timer = setInterval(function () { loadMoreData(true); }, 2000);
+                    autoLoadMore_timer = setTimeout(function () { loadMoreData(true); }, 2000);
                 }
                 else {
-                    clearInterval(autoLoadMore_timer);
+                    window.clearTimeout(autoLoadMore_timer);
                     autoLoadMore_timer = 0;
                 }
             }
@@ -387,7 +387,7 @@
 
     function loadData() {
         if (autoLoadMore_timer) {
-            clearInterval(autoLoadMore_timer);
+            window.clearTimeout(autoLoadMore_timer);
             autoLoadMore_timer = 0;
         }
         var startTimeStamp;
@@ -447,7 +447,7 @@
             console.log(res.data);
 
             if (model.autoLoadMore) {
-                autoLoadMore_timer = setInterval(function () { loadMoreData(true); }, 2000);
+                autoLoadMore_timer = setTimeout(function () { loadMoreData(true); }, 2000);
             }
         }).catch(function (err) {
             model.isBusy = false;
@@ -456,7 +456,13 @@
      
     }
 
-    function loadMoreData(isauto) {
+    async function loadMoreData(isauto) {
+        if (model.isBusy) {
+            if (isauto && model.autoLoadMore) {
+                autoLoadMore_timer = setTimeout(function () { loadMoreData(true) }, 2000);
+            }
+            return;
+        }
         console.log("loadMoreData执行");
         var startTimeStamp;
         if (model.logs.length == 0) {
@@ -491,14 +497,13 @@
             model.isBusy = true;
         }
         var url = serverUrl + "/Log/ReadLogs";
-        axios({
-            method: "get",
-            url: url,
-            params: param
-        }).then(function (res) {
-            if (!isauto) {
-                model.isBusy = false;
-            }
+
+        try {
+            var res = await axios({
+                method: "get",
+                url: url,
+                params: param
+            });
 
             if (res.data.length == 0)
                 return;
@@ -522,13 +527,19 @@
             });
             model.errCount = errCount;
             console.log(res.data);
-        }).catch(function (err) {
+        } catch (e) {
             if (!isauto) {
+                alert(JSON.stringify(e));
+            }
+        }
+        finally {
+            if (isauto && model.autoLoadMore) {
+                autoLoadMore_timer = setTimeout(function () { loadMoreData(true) }, 2000);
+            }
+            else {
                 model.isBusy = false;
             }
-            alert(JSON.stringify(err));
-        });
-
+        }
     }
 
     function getApplications() {
