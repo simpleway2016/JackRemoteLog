@@ -45,7 +45,7 @@ namespace Jack.RemoteLog.WebApi.Controllers
         }
 
         [HttpGet]
-        public LogItem[] ReadLogs(string applicationContext, string? sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string? keyWord)
+        public LogItem[] ReadLogs(string applicationContext, string? sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string? keyWord,string? traceId)
         {
             if (sourceContext != null)
             {
@@ -54,7 +54,7 @@ namespace Jack.RemoteLog.WebApi.Controllers
                     sourceContext = sourceContext.Replace("\r", "-").Replace("\n", "-");
                 }
             }
-            return _logService.ReadLogs(applicationContext, sourceContext, level, startTimeStamp, endTimeStamp, keyWord);
+            return _logService.ReadLogs(applicationContext, sourceContext, level, startTimeStamp, endTimeStamp, keyWord, traceId);
         }
 
         [HttpGet]

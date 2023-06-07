@@ -12,6 +12,7 @@ using Quartz.Logging;
 using System;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Util;
+using static Lucene.Net.Search.FieldCache;
 
 
 namespace Jack.RemoteLog.WebApi.Infrastructures
@@ -80,7 +81,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             return ret;
         }
 
-        public LogItem[] Read(ISourceContextCollection sourceContextes, string sourceContext, Microsoft.Extensions.Logging.LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord)
+        public LogItem[] Read(ISourceContextCollection sourceContextes, string sourceContext, Microsoft.Extensions.Logging.LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord,string? traceId)
         {
             try
             {
@@ -114,6 +115,11 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                         booleanClauses.Add(new TermQuery(new Term("Level", bytes)), Occur.MUST);
                     }
 
+                    if(!string.IsNullOrWhiteSpace(traceId))
+                    {
+                        booleanClauses.Add(new TermQuery(new Term("TraceId", traceId)), Occur.MUST);
+                    }
+
                     List<string> words = null;
                     if (string.IsNullOrEmpty(keyWord) == false)
                     {
@@ -131,12 +137,14 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                         int.TryParse(doc.Get("Level"), out int itemlevel);
                         int.TryParse(doc.Get("SourceContextId"), out int sourceContextId);
                         long.TryParse(doc.Get("Timestamp"), out long timestamp);
+                         
                         ret[i] = new LogItem
                         {
                             Content = doc.Get("Content"),
                             Level = (Microsoft.Extensions.Logging.LogLevel)itemlevel,
                             SourceContext = sourceContext != null ? sourceContext : _sourceContextReader.GetSourceContext(sourceContextId),
-                            Timestamp = timestamp
+                            Timestamp = timestamp,
+                            TraceId = doc.Get("TraceId")
                         };
 
                         if (ret[i].Content != null && words != null)

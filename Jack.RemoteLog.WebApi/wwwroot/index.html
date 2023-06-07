@@ -232,7 +232,8 @@
         <div class="flex-1 itemContainer display-flex flex-direction-column">
             <div class="flex-shrink-0" v-show="selectedAppContext">
                 <div style="text-align:right;">
-                    <input placeholder="关键字" v-model="keyword"/>
+                    <input placeholder="关键字" v-model="keyword" />
+                    <input placeholder="TraceId" v-model="traceId" />
                     <select v-model="level">
                         <option value="">所有Level</option>
                         <option value="0">Trace</option>
@@ -245,7 +246,7 @@
                     <select v-model="selectedSourceContext">
                         <option :value="sourceContext" v-for="sourceContext in sourceContexts">{{sourceContext?sourceContext:"所有SourceContext"}}</option>
                     </select>
-                    <button @click="search" :class="{loading:isBusy}" >过滤</button>
+                    <button @click="search" :class="{loading:isBusy}">过滤</button>
                 </div>
             </div>
             <div class="flex-shrink-0" v-show="selectedAppContext">
@@ -257,6 +258,7 @@
             <div class="logpanel flex-1">
                 <div v-for="log in logs" class="logitem" :class="{err:log.level==4}">
                     <div>{{showTime(log.timestamp)}} [{{showLevel(log.level)}}] {{log.sourceContext}}</div>
+                    <div v-if="log.traceId">TraceId：{{log.traceId}}</div>
                     <div v-html="log.content.replace(/\n/g , '<br>')"></div>
                 </div>
                
@@ -287,6 +289,7 @@
         appContexts: [],
         sourceContexts: [],
         keyword: undefined,
+        traceId: undefined,
         selectedAppContext: undefined,
         selectedSourceContext: undefined,
         level: "",
@@ -410,6 +413,7 @@
             level: model.level,
             startTimeStamp: startTimeStamp,
             endTimeStamp: endTimeStamp,
+            traceId: model.traceId,
         };
 
         console.log(JSON.stringify(param));
@@ -489,6 +493,7 @@
             level: model.level,
             startTimeStamp: startTimeStamp,
             endTimeStamp: endTimeStamp,
+            traceId: model.traceId
         };
 
         console.log(JSON.stringify(param));

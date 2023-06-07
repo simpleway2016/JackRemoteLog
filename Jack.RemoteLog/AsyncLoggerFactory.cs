@@ -6,9 +6,9 @@ namespace Jack.RemoteLog
     class AsyncLoggerFactory : ILoggerFactory
     {
         ILoggerProvider _loggerProvider;
-        public AsyncLoggerFactory(string applicationContext)
+        public AsyncLoggerFactory(string applicationContext,ILogItemFilter logItemFilter)
         {
-            _loggerProvider = new AsyncLoggerProvider(applicationContext);
+            _loggerProvider = new AsyncLoggerProvider(applicationContext, logItemFilter);
         }
         public void AddProvider(ILoggerProvider provider)
         {

@@ -10,10 +10,12 @@ namespace Jack.RemoteLog
         public long Timestamp { get; set; }
         public LogLevel Level { get; set; }
         public string Content { get; set; }
+        public string TraceId { get; set; }
     }
 
     class QueueLogger : Microsoft.Extensions.Logging.ILogger
     {
+        ILogItemFilter _logItemFilter;
         string _applicationContext;
 
         static ConcurrentQueue<LogItem> Queue = new ConcurrentQueue<LogItem>();
@@ -32,7 +34,7 @@ namespace Jack.RemoteLog
                 {
                     if (Queue.TryDequeue(out LogItem item))
                     {
-                       while(true)
+                        while (true)
                         {
                             try
                             {
@@ -42,7 +44,7 @@ namespace Jack.RemoteLog
                             catch
                             {
                                 //保持堆积不超过1000
-                                while(Queue.Count > 1000)
+                                while (Queue.Count > 1000)
                                 {
                                     Queue.TryDequeue(out item);
                                 }
@@ -58,8 +60,9 @@ namespace Jack.RemoteLog
             }).Start();
         }
 
-        public QueueLogger(string applicationContext, string categoryName)
+        public QueueLogger(string applicationContext, string categoryName, ILogItemFilter logItemFilter)
         {
+            this._logItemFilter = logItemFilter;
             this._applicationContext = applicationContext;
             this._categoryName = categoryName;
 
@@ -87,15 +90,17 @@ namespace Jack.RemoteLog
                     else
                         msg = $"{msg}\r\n{exception.ToString()}";
                 }
-               
-                Queue.Enqueue(new LogItem
+
+                var logitem = new LogItem
                 {
                     Level = logLevel,
                     Content = msg,
                     Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     SourceContext = _categoryName,
                     ApplicationContext = _applicationContext
-                });
+                };
+                _logItemFilter?.OnExecuting(logitem);
+                Queue.Enqueue(logitem);
                 WaitEvent.Set();
             }
         }

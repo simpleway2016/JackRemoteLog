@@ -39,7 +39,7 @@ namespace Jack.RemoteLog
 
             ConfigurationChangeCallback(builder);
 
-            builder.AddProvider(new AsyncLoggerProvider(configuration["Logging:ContextName"]));
+            builder.AddProvider(new AsyncLoggerProvider(configuration["Logging:ContextName"] , null));
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Jack.RemoteLog
 
             ConfigurationChangeCallback(builder);
 
-            builder.AddProvider(new AsyncLoggerProvider(options.ApplicationContext));
+            builder.AddProvider(new AsyncLoggerProvider(options.ApplicationContext, options.LogItemFilter));
         }
 
     }
