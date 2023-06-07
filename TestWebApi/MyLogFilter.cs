@@ -12,7 +12,15 @@ namespace TestWebApi
         }
         public void OnExecuting(LogItem logItem)
         {
-            logItem.TraceId = "testTraceId5";
+            var context= _httpContextAccessor.HttpContext;
+            if (context == null)
+            {
+                
+            }
+            else
+            {
+                logItem.TraceId = context.Request.Headers.Host;
+            }
         }
     }
 }

@@ -10,10 +10,10 @@ namespace Jack.RemoteLog
     {
         ILogItemFilter _logItemFilter;
         string _applicationContext;
-        public AsyncLoggerProvider(string applicationContext, ILogItemFilter logItemFilter)
+        public AsyncLoggerProvider(Options options, ILogItemFilter logItemFilter)
         {
             this._logItemFilter = logItemFilter;
-            _applicationContext = applicationContext;
+            _applicationContext = options.ApplicationContext;
         }
 
         public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)

@@ -3,8 +3,9 @@ using TestWebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 Console.WriteLine(builder.Configuration["Logging"]);
+
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddSingleton<ILogItemFilter, MyLogFilter>();
+builder.Services.AddSingleton<ILogItemFilter,MyLogFilter> ();
 builder.Services.AddLogging(b =>
 {
     b.UseJackRemoteLogger(builder.Configuration , new Options { 
@@ -18,12 +19,13 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-var logger = app.Services.GetService<ILogger<Program>>();
-logger.LogInformation("测试信息");
-// Configure the HTTP request pipeline.
-
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.Use((c, next) => {
+    c.RequestServices.GetService<ILogger<Program>>().LogInformation("有访问");
+    return next();
+});
 
 app.Run();

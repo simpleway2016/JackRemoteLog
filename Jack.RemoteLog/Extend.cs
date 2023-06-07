@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
@@ -42,8 +44,7 @@ namespace Jack.RemoteLog
             builder.Services.AddSingleton(new Options { 
                 ApplicationContext = configuration["Logging:ContextName"]
             });
-            builder.Services.AddSingleton<ILoggerFactory, AsyncLoggerFactory>();
-            //builder.AddProvider(new AsyncLoggerProvider(configuration["Logging:ContextName"] , null));
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, AsyncLoggerProvider>());
         }
 
         /// <summary>
@@ -69,9 +70,9 @@ namespace Jack.RemoteLog
 
             ConfigurationChangeCallback(builder);
 
+
             builder.Services.AddSingleton(options);
-            builder.Services.AddSingleton<ILoggerFactory, AsyncLoggerFactory>();
-            //builder.AddProvider(new AsyncLoggerProvider(options.ApplicationContext, options.LogItemFilter));
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, AsyncLoggerProvider>());
         }
 
     }

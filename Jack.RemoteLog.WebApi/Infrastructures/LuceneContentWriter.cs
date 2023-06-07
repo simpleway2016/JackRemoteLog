@@ -99,7 +99,10 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                             doc.AddInt32Field("SourceContextId", writeLogModel.SourceContextId, Field.Store.YES);
                             doc.AddInt32Field("Level", (int)writeLogModel.Level, Field.Store.YES);
                             doc.AddInt64Field("Timestamp", writeLogModel.Timestamp, Field.Store.YES);
-                            doc.AddStringField("TraceId", writeLogModel.TraceId, Field.Store.YES);
+                            if (string.IsNullOrWhiteSpace(writeLogModel.TraceId) == false)
+                            {
+                                doc.AddStringField("TraceId", writeLogModel.TraceId, Field.Store.YES);
+                            }
 
                             //将解析完成的内容存储
                             try
