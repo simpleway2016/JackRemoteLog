@@ -39,7 +39,11 @@ namespace Jack.RemoteLog
 
             ConfigurationChangeCallback(builder);
 
-            builder.AddProvider(new AsyncLoggerProvider(configuration["Logging:ContextName"] , null));
+            builder.Services.AddSingleton(new Options { 
+                ApplicationContext = configuration["Logging:ContextName"]
+            });
+            builder.Services.AddSingleton<ILoggerFactory, AsyncLoggerFactory>();
+            //builder.AddProvider(new AsyncLoggerProvider(configuration["Logging:ContextName"] , null));
         }
 
         /// <summary>
@@ -65,7 +69,9 @@ namespace Jack.RemoteLog
 
             ConfigurationChangeCallback(builder);
 
-            builder.AddProvider(new AsyncLoggerProvider(options.ApplicationContext, options.LogItemFilter));
+            builder.Services.AddSingleton(options);
+            builder.Services.AddSingleton<ILoggerFactory, AsyncLoggerFactory>();
+            //builder.AddProvider(new AsyncLoggerProvider(options.ApplicationContext, options.LogItemFilter));
         }
 
     }

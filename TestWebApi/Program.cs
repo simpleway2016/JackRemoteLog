@@ -3,12 +3,13 @@ using TestWebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 Console.WriteLine(builder.Configuration["Logging"]);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<ILogItemFilter, MyLogFilter>();
 builder.Services.AddLogging(b =>
 {
     b.UseJackRemoteLogger(builder.Configuration , new Options { 
         UserName= "JACK",
-        Password= "123",
-        LogItemFilter = new MyLogFilter()
+        Password= "123"
     });
 });
 // Add services to the container.

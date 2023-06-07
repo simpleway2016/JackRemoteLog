@@ -6,18 +6,21 @@ namespace Jack.RemoteLog
     class AsyncLoggerFactory : ILoggerFactory
     {
         ILoggerProvider _loggerProvider;
-        public AsyncLoggerFactory(string applicationContext,ILogItemFilter logItemFilter)
+        public AsyncLoggerFactory(Options options,ILogItemFilter logItemFilter)
         {
-            _loggerProvider = new AsyncLoggerProvider(applicationContext, logItemFilter);
+            _loggerProvider = new AsyncLoggerProvider(options.ApplicationContext, logItemFilter);
         }
         public void AddProvider(ILoggerProvider provider)
         {
+            if(provider == null)
+                throw new ArgumentNullException(nameof(provider));
 
+            _loggerProvider = provider;
         }
 
         public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
         {
-            return _loggerProvider.CreateLogger(categoryName);
+            return _loggerProvider?.CreateLogger(categoryName);
         }
 
         public void Dispose()
