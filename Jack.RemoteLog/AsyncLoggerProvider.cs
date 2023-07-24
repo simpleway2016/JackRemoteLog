@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,9 +11,9 @@ namespace Jack.RemoteLog
     {
         ILogItemFilter _logItemFilter;
         string _applicationContext;
-        public AsyncLoggerProvider(Options options, ILogItemFilter logItemFilter)
+        public AsyncLoggerProvider(Options options, IServiceProvider serviceProvider)
         {
-            this._logItemFilter = logItemFilter;
+            this._logItemFilter = serviceProvider.GetService<ILogItemFilter>();
             _applicationContext = options.ApplicationContext;
         }
 
