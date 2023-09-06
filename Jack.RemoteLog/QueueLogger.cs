@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Concurrent;
+using System.Net.Http;
+using System.Threading;
 
 namespace Jack.RemoteLog
 {
@@ -29,32 +32,34 @@ namespace Jack.RemoteLog
             {
                 var handler = new HttpClientHandler();
                 handler.ServerCertificateCustomValidationCallback = delegate { return true; };
-                using var httpClient = new HttpClient(handler);
-                while (true)
+                using (var httpClient = new HttpClient(handler))
                 {
-                    if (Queue.TryDequeue(out LogItem item))
+                    while (true)
                     {
-                        while (true)
+                        if (Queue.TryDequeue(out LogItem item))
                         {
-                            try
+                            while (true)
                             {
-                                await sender.Send(item, httpClient);
-                                break;
-                            }
-                            catch
-                            {
-                                //保持堆积不超过1000
-                                while (Queue.Count > 1000)
+                                try
                                 {
-                                    Queue.TryDequeue(out item);
+                                    await sender.Send(item, httpClient);
+                                    break;
                                 }
-                                Thread.Sleep(3000);
+                                catch
+                                {
+                                    //保持堆积不超过1000
+                                    while (Queue.Count > 1000)
+                                    {
+                                        Queue.TryDequeue(out item);
+                                    }
+                                    Thread.Sleep(3000);
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        WaitEvent.WaitOne();
+                        else
+                        {
+                            WaitEvent.WaitOne();
+                        }
                     }
                 }
             }).Start();
