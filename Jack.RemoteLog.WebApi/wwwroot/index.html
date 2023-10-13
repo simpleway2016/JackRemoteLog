@@ -154,7 +154,7 @@
         }
 
         .itemContainer {
-            padding: 1rem;
+            padding: 16px;
         }
 
         .logpanel {
@@ -166,8 +166,8 @@
             background-color:#ccc;
         }
         .logitem {
-            margin-bottom: 0.5rem;
-            font-size: 0.3rem;
+            margin-bottom: 8px;
+            font-size: 12px;
         }
 
         .leftmenu {
@@ -179,21 +179,21 @@
 
         .lefttop {
             color: #4d5970;
-            font-size: 1.3rem;
+            font-size: 20px;
             font-weight: 600;
             text-align: center;
-            padding: 1rem 2rem;
+            padding: 16px 32px;
         }
 
         .lefttitle {
             position: relative;
             cursor: pointer;
             color: #4d5970;
-            font-size: 0.8rem;
+            font-size: 13px;
             font-weight: 600;
-            height: 3rem;
-            line-height: 3rem;
-            padding: 0 3rem 0 1rem;
+            height: 48px;
+            line-height: 48px;
+            padding: 0 48px 0 16px;
             border-bottom: 1px solid #a3adb8;
         }
 
@@ -204,16 +204,16 @@
 
         .lefttitle svg {
             position: absolute;
-            right: 0.7rem;
+            right: 12px;
         }
 
         button {
             background-color: #209aed;
-            border-radius: 0.2rem;
-            padding: 0.3rem 0.6rem;
+            border-radius: 3px;
+            padding: 5px 10px;
             border: 0;
             color: #fff;
-            margin-right: 0.5rem;
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -224,7 +224,7 @@
             <div class="lefttop">AppContextNames</div>
             <div class="lefttitle display-flex flex-direction-row align-items-center" :class="{actived:appContext==selectedAppContext}" @click="selectedAppContext=appContext" v-for="appContext,index in appContexts">
                 <div>{{appContext}}</div>
-                <svg viewBox="0 0 100 100" style="width:0.5rem;height:0.5rem;">
+                <svg viewBox="0 0 100 100" style="width:8px;height:8px;">
                     <path d="M0 0 L80 50 L0 100" stroke="#5a616c" fill="none" stroke-width="10"></path>
                 </svg>
             </div>
