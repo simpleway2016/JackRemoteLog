@@ -1,0 +1,4 @@
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+WORKDIR /app
+COPY Publish/Linux/RemoteLogServer .
+ENTRYPOINT ["dotnet", "Jack.RemoteLog.WebApi.dll","-s:share"]
