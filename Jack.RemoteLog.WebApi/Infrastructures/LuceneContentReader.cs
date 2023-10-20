@@ -4,7 +4,6 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Lucene.Net.Documents;
-using Jack.RemoteLog.WebApi.Domains;
 using Lucene.Net.Search;
 using System.Text;
 using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;

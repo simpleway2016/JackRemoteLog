@@ -1,4 +1,4 @@
-﻿namespace Jack.RemoteLog.WebApi.Domains
+﻿namespace Jack.RemoteLog.WebApi
 {
     public interface ISourceContextCollection : IEnumerable<string>
     {

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Jack.RemoteLog.WebApi.Domains
+namespace Jack.RemoteLog.WebApi
 {
     /// <summary>
     /// 记录无授权的用户
@@ -28,7 +28,7 @@ namespace Jack.RemoteLog.WebApi.Domains
 
                 if (errorItem.BlackListTime != null && DateTime.Now >= errorItem.BlackListTime.Value)
                 {
-                    this.Clear(ip);
+                    Clear(ip);
                 }
             }
 
@@ -47,9 +47,9 @@ namespace Jack.RemoteLog.WebApi.Domains
                     {
                         Console.WriteLine($"{ip}被列入黑名单");
                     }
-                    catch 
+                    catch
                     {
-                         
+
                     }
                 }
             }
@@ -59,7 +59,7 @@ namespace Jack.RemoteLog.WebApi.Domains
                 {
                     Count = 1
                 };
-            }          
+            }
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿using Jack.RemoteLog.WebApi.Domains;
+﻿using Jack.RemoteLog.WebApi.Infrastructures;
 using System.Collections.Concurrent;
 
 namespace Jack.RemoteLog.WebApi.Applications

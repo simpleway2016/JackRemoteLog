@@ -3,21 +3,21 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Text;
 
-namespace Jack.RemoteLog.WebApi.Domains
+namespace Jack.RemoteLog.WebApi
 {
-    public class FileSourceContextCollection : ISourceContextCollection,IDisposable
+    public class FileSourceContextCollection : ISourceContextCollection, IDisposable
     {
         int _currentMaxId;
-        ConcurrentDictionary<string,int> _dict = new ConcurrentDictionary<string,int>();
+        ConcurrentDictionary<string, int> _dict = new ConcurrentDictionary<string, int>();
         string _filepath;
         SqliteConnection _sqlCon;
         public FileSourceContextCollection(string folderPath)
         {
             _filepath = $"{folderPath}/sourcecontext.db";
             _sqlCon = new SqliteConnection($"data source='{_filepath}'");
-            
 
-     
+
+
             if (File.Exists(_filepath) == false)
             {
                 _sqlCon.Open();
@@ -27,7 +27,7 @@ namespace Jack.RemoteLog.WebApi.Domains
             {
                 _sqlCon.Open();
 
-                using (SqliteCommand cmd = new SqliteCommand(null,_sqlCon))
+                using (SqliteCommand cmd = new SqliteCommand(null, _sqlCon))
                 {
                     cmd.CommandText = "select id,name from sourcecontext";
                     try
@@ -36,7 +36,7 @@ namespace Jack.RemoteLog.WebApi.Domains
                         {
                             while (reader.Read())
                             {
-                                _dict[reader["name"].ToString()] = Convert.ToInt32( reader["id"]);
+                                _dict[reader["name"].ToString()] = Convert.ToInt32(reader["id"]);
                             }
                         }
                     }
@@ -63,7 +63,7 @@ create table sourcecontext (
                 cmd.ExecuteNonQuery();
                 cmd.Dispose();
             }
-            catch 
+            catch
             {
 
             }
@@ -86,7 +86,7 @@ create table sourcecontext (
                     cmd.CommandText = "insert into sourcecontext (name) values (@p)";
                     cmd.ExecuteNonQuery();
                     cmd.CommandText = "select last_insert_rowid()";
-                    _dict[sourceContext] = Convert.ToInt32( cmd.ExecuteScalar());
+                    _dict[sourceContext] = Convert.ToInt32(cmd.ExecuteScalar());
                 }
             }
         }

@@ -12,7 +12,6 @@ using Microsoft.Extensions.Primitives;
 using System.Text;
 using JMS;
 using Jack.RemoteLog.WebApi.Dtos;
-using Jack.RemoteLog.WebApi.Domains;
 using Org.BouncyCastle.X509;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection.PortableExecutable;

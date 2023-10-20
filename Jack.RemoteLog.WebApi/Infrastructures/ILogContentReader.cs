@@ -1,5 +1,4 @@
-﻿using Jack.RemoteLog.WebApi.Domains;
-using Jack.RemoteLog.WebApi.Dtos;
+﻿using Jack.RemoteLog.WebApi.Dtos;
 
 namespace Jack.RemoteLog.WebApi.Infrastructures
 {

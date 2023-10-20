@@ -1,8 +1,8 @@
 ﻿using Jack.RemoteLog.WebApi.Dtos;
 
-namespace Jack.RemoteLog.WebApi.Domains
+namespace Jack.RemoteLog.WebApi.Infrastructures
 {
-    public interface ILogChannel: IDisposable
+    public interface ILogChannel : IDisposable
     {
         string ApplicationContext { get; }
         string[] GetAllSourceContext();
