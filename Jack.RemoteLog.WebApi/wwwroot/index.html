@@ -6,7 +6,8 @@
     <script src="js/vue.js"></script>
     <script src="js/axios.min.js"></script>
     <style>
-        html, body {
+        html,
+        body {
             height: 100%;
             width: 100%;
             min-height: 100%;
@@ -35,12 +36,18 @@
         }
 
         .display-flex {
-            display: box; /* OLD - Android 4.4- */
-            display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6 */
-            display: -moz-box; /* OLD - Firefox 19- (buggy but mostly works) */
-            display: -ms-flexbox; /* TWEENER - IE 10 */
-            display: -webkit-flex; /* NEW - Chrome */
-            display: flex; /* NEW, Spec - Opera 12.1, Firefox 20+ */
+            display: box;
+            /* OLD - Android 4.4- */
+            display: -webkit-box;
+            /* OLD - iOS 6-, Safari 3.1-6 */
+            display: -moz-box;
+            /* OLD - Firefox 19- (buggy but mostly works) */
+            display: -ms-flexbox;
+            /* TWEENER - IE 10 */
+            display: -webkit-flex;
+            /* NEW - Chrome */
+            display: flex;
+            /* NEW, Spec - Opera 12.1, Firefox 20+ */
         }
 
         .flex-direction-row {
@@ -162,9 +169,11 @@
             overflow-y: auto;
             word-break: break-all;
         }
+
         .loading {
-            background-color:#ccc;
+            background-color: #ccc;
         }
+
         .logitem {
             margin-bottom: 8px;
             font-size: 12px;
@@ -222,8 +231,11 @@
     <div class="main display-flex flex-direction-row" @click.stop="nothing">
         <div class="leftmenu flex-shrink-0">
             <div class="lefttop">AppContextNames</div>
-            <div class="lefttitle display-flex flex-direction-row align-items-center" :class="{actived:appContext==selectedAppContext}" @click="selectedAppContext=appContext" v-for="appContext,index in appContexts">
-                <div>{{appContext}}</div>
+            <div class="lefttitle display-flex flex-direction-row align-items-center"
+                :class="{actived:appContext.name==selectedAppContext}" @click="activeContext(appContext.name)"
+                v-for="appContext,index in appContexts">
+                <div><input type="checkbox" v-model="appContext.selected" @click.stop="nothing"> {{appContext.name}}
+                </div>
                 <svg viewBox="0 0 100 100" style="width:8px;height:8px;">
                     <path d="M0 0 L80 50 L0 100" stroke="#5a616c" fill="none" stroke-width="10"></path>
                 </svg>
@@ -244,7 +256,8 @@
                         <option value="5">Critical</option>
                     </select>
                     <select v-model="selectedSourceContext">
-                        <option :value="sourceContext" v-for="sourceContext in sourceContexts">{{sourceContext?sourceContext:"所有SourceContext"}}</option>
+                        <option :value="sourceContext" v-for="sourceContext in sourceContexts">
+                            {{sourceContext?sourceContext:"所有SourceContext"}}</option>
                     </select>
                     <button @click="search" :class="{loading:isBusy}">过滤</button>
                 </div>
@@ -257,15 +270,20 @@
             </div>
             <div class="logpanel flex-1">
                 <div v-for="log in logs" class="logitem" :class="{err:log.level==4}">
-                    <div>{{showTime(log.timestamp)}} [{{showLevel(log.level)}}] {{log.sourceContext}}</div>
+                    <div>{{showTime(log.timestamp)}} [{{showLevel(log.level)}}]
+                        <template v-if="log.AppContext">
+                            <font color="blue">{{log.AppContext}}</font>-
+                        </template>
+                        {{log.sourceContext}}
+                    </div>
                     <div v-if="log.traceId">TraceId：{{log.traceId}}</div>
                     <div v-html="log.content.replace(/\n/g , '<br>')"></div>
                 </div>
-               
+
             </div>
             <div class="flex-shrink-0">
                 <button @click="loadMore" v-show="!autoLoadMore" :class="{loading:isBusy}">加载更多...</button>&nbsp;&nbsp;
-                <input type="checkbox" v-model="autoLoadMore" id="chk1"/><label for="chk1">自动监测新日志</label>
+                <input type="checkbox" v-model="autoLoadMore" id="chk1" /><label for="chk1">自动监测新日志</label>
             </div>
         </div>
 
@@ -277,7 +295,7 @@
     var serverUrl = "http://47.241.20.45:12000";
     if (location.protocol.indexOf("http") == 0) {
         serverUrl = location.protocol + "//" + location.host;
-        
+
     }
     console.log("serverUrl:", serverUrl);
 
@@ -285,7 +303,7 @@
     var model = {
         isBusy: false,
         hasMore: false,
-        autoLoadMore:false,
+        autoLoadMore: false,
         appContexts: [],
         sourceContexts: [],
         keyword: undefined,
@@ -294,8 +312,8 @@
         selectedSourceContext: undefined,
         level: "",
         logs: [],
-        totalHits:0,
-        errCount:0,
+        totalHits: 0,
+        errCount: 0,
         startTime: undefined,
         endTime: undefined,
     };
@@ -313,7 +331,14 @@
             selectedAppContext: function (newval) {
                 model.selectedSourceContext = undefined;
                 model.keyword = "";
+                model.traceId = "";
                 model.startTime = new Date(Date.now() - 1 * 60000).toLocaleString('chinese', { hour12: false });
+                model.logs = [];
+
+                window.clearTimeout(autoLoadMore_timer);
+                autoLoadMore_timer = 0;
+
+                model.autoLoadMore = false;
                 loadSourceContext();
             },
             autoLoadMore: function (newVal) {
@@ -334,6 +359,20 @@
         },
         methods: {
             nothing: function () { },
+            activeContext: function (context) {
+
+                var item = this.appContexts.find(x => x.name == context);
+                if (item && item.selected == false) {
+                    this.appContexts.forEach(x => {
+                        if (x != item) {
+                            x.selected = false;
+                        }
+                        x.startTimeStamp = undefined;
+                    });
+                    this.selectedAppContext = context;
+                    item.selected = true;
+                }
+            },
             search: function () {
                 if (model.isBusy)
                     return;
@@ -382,17 +421,40 @@
             }
         }).then(function (res) {
             model.sourceContexts = [undefined, ...res.data];
-            console.log(res.data);
         }).catch(function (err) {
             alert(JSON.stringify(err));
         });
     }
 
-    function loadData() {
+    async function searchContextData(param, contextName, sourceContext) {
+        param.applicationContext = contextName;
+        param.sourceContext = sourceContext;
+
+        var startTimeStamp = model.appContexts.find(x => x.name == contextName).startTimeStamp;
+        if (startTimeStamp != undefined) {
+            param.startTimeStamp = startTimeStamp + 1;
+        }
+
+        var url = serverUrl + "/Log/ReadLogs";
+        var res = await axios({
+            method: "get",
+            url: url,
+            params: param
+        });
+        return res.data;
+
+    }
+
+    async function loadData() {
         if (autoLoadMore_timer) {
             window.clearTimeout(autoLoadMore_timer);
             autoLoadMore_timer = 0;
         }
+
+        model.appContexts.forEach(x => {
+            x.startTimeStamp = undefined;
+        });
+
         var startTimeStamp;
         var endTimeStamp;
         if (model.startTime == undefined) {
@@ -407,8 +469,6 @@
         }
 
         var param = {
-            applicationContext: model.selectedAppContext,
-            sourceContext: model.selectedSourceContext,
             keyWord: model.keyword,
             level: model.level,
             startTimeStamp: startTimeStamp,
@@ -416,28 +476,63 @@
             traceId: model.traceId,
         };
 
-        console.log(JSON.stringify(param));
+
 
         model.isBusy = true;
-        var url = serverUrl + "/Log/ReadLogs";
-        axios({
-            method: "get",
-            url: url,
-            params: param
-        }).then(function (res) {
+        try {
+            var logs = await searchContextData(param, model.selectedAppContext, model.selectedSourceContext);
+
+            var others = model.appContexts.filter(x => x.name != model.selectedAppContext && x.selected);
+            if (others.length) {
+
+                if (others.length) {
+                    logs.forEach(x => {
+                        x.AppContext = model.selectedAppContext;
+                    });
+
+                    for (var j = 0; j < others.length; j++) {
+                        var otherlogs = await searchContextData(param, others[j].name, undefined);
+                        if (otherlogs.length) {
+                            otherlogs.forEach(x => {
+                                x.AppContext = others[j].name;
+                            });
+                            logs.push(...otherlogs);
+                            logs.sort(function (a, b) {
+                                return a.timestamp - b.timestamp;
+                            });
+                        }
+                    }
+
+                }
+            }
+
+            if (logs.length) {
+                var allActiveContexts = model.appContexts.filter(x => x.selected);
+                allActiveContexts.forEach(x => {
+                    for (var j = logs.length - 1; j >= 0; j--) {
+                        var log = logs[j];
+                        if (log.AppContext == x.name) {
+                            x.startTimeStamp = log.timestamp;
+                            break;
+                        }
+                    }
+                });
+            }
+
             model.isBusy = false;
             updatedAction = function () {
                 if (divLogPanel.children.length > 0)
                     divLogPanel.children[divLogPanel.children.length - 1].scrollIntoView();
             };
-            model.logs = res.data;
 
-            if (res.data.length > 0)
-                model.totalHits = res.data[0].totalHits;
+            model.logs = logs;
+
+            if (logs.length > 0)
+                model.totalHits = logs[0].totalHits;
             else
                 model.totalHits = 0;
 
-            if (res.data.length == 0) {
+            if (logs.length == 0) {
                 model.hasMore = false;
             }
 
@@ -448,16 +543,15 @@
                 }
             });
             model.errCount = errCount;
-            console.log(res.data);
 
             if (model.autoLoadMore) {
                 autoLoadMore_timer = setTimeout(function () { loadMoreData(true); }, 2000);
             }
-        }).catch(function (err) {
+        } catch (error) {
             model.isBusy = false;
-            alert(JSON.stringify(err));
-        });
-     
+            alert(JSON.stringify(error));
+        }
+
     }
 
     async function loadMoreData(isauto) {
@@ -487,8 +581,6 @@
         }
 
         var param = {
-            applicationContext: model.selectedAppContext,
-            sourceContext: model.selectedSourceContext,
             keyWord: model.keyword,
             level: model.level,
             startTimeStamp: startTimeStamp,
@@ -496,7 +588,7 @@
             traceId: model.traceId
         };
 
-        console.log(JSON.stringify(param));
+
 
         if (!isauto) {
             model.isBusy = true;
@@ -504,14 +596,47 @@
         var url = serverUrl + "/Log/ReadLogs";
 
         try {
-            var res = await axios({
-                method: "get",
-                url: url,
-                params: param
-            });
+            var logs = await searchContextData(param, model.selectedAppContext, model.selectedSourceContext);
 
-            if (res.data.length == 0)
+            var others = model.appContexts.filter(x => x.name != model.selectedAppContext && x.selected);
+            if (others.length) {
+
+                if (others.length) {
+                    logs.forEach(x => {
+                        x.AppContext = model.selectedAppContext;
+                    });
+
+                    for (var j = 0; j < others.length; j++) {
+                        var otherlogs = await searchContextData(param, others[j].name, undefined);
+                        if (otherlogs.length) {
+                            otherlogs.forEach(x => {
+                                x.AppContext = others[j].name;
+                            });
+                            logs.push(...otherlogs);
+                            logs = logs.sort(function (a, b) {
+                                return a.timestamp - b.timestamp;
+                            });
+                        }
+                    }
+
+                }
+            }
+
+            if (logs.length == 0)
                 return;
+
+            if (logs.length) {
+                var allActiveContexts = model.appContexts.filter(x => x.selected);
+                allActiveContexts.forEach(x => {
+                    for (var j = logs.length - 1; j >= 0; j--) {
+                        var log = logs[j];
+                        if (log.AppContext == x.name) {
+                            x.startTimeStamp = log.timestamp;
+                            break;
+                        }
+                    }
+                });
+            }
 
             if (isauto && model.autoLoadMore == false)
                 return;
@@ -520,11 +645,11 @@
                 if (divLogPanel.children.length > 0)
                     divLogPanel.children[divLogPanel.children.length - 1].scrollIntoView();
             };
-            if (res.data.length > 0)
-                model.totalHits = model.logs.length + res.data[0].totalHits;
+            if (logs.length > 0)
+                model.totalHits = model.logs.length + logs[0].totalHits;
 
-            model.logs = [...model.logs, ...res.data];
-            if (res.data.length == 0) {
+            model.logs = [...model.logs, ...logs];
+            if (logs.length == 0) {
                 model.hasMore = false;
             }
             var errCount = 0;
@@ -534,7 +659,6 @@
                 }
             });
             model.errCount = errCount;
-            console.log(res.data);
         } catch (e) {
             if (!isauto) {
                 alert(JSON.stringify(e));
@@ -553,7 +677,12 @@
     function getApplications() {
         var url = serverUrl + "/Log/GetApplications";
         axios.get(url).then(function (res) {
-            model.appContexts = res.data;
+            res.data.forEach(x => {
+                model.appContexts.push({
+                    name: x,
+                    selected: false,
+                });
+            });
         }).catch(function (err) {
             alert(JSON.stringify(err));
         });
@@ -561,5 +690,5 @@
 
     getApplications();
 </script>
-</html>
 
+</html>
