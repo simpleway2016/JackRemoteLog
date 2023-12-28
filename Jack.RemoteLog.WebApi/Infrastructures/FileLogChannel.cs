@@ -31,9 +31,9 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             _contentWriter.Write(request);
         }
 
-        public LogItem[] Read(string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord, string? traceId)
+        public LogItem[] Read(SearchRequestBody body)
         {
-            return _contentReader.Read(_sourceContexts, sourceContext, level, startTimeStamp, endTimeStamp, keyWord, traceId);
+            return _contentReader.Read(_sourceContexts, body);
         }
 
         /// <summary>

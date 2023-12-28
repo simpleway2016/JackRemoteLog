@@ -4,6 +4,6 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
 {
     public interface ILogContentReader:IDisposable
     {
-        LogItem[] Read(ISourceContextCollection sourceContextes, string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord,string? traceId);
+        LogItem[] Read(ISourceContextCollection sourceContextes, SearchRequestBody body);
     }
 }

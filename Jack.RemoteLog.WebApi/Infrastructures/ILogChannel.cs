@@ -12,6 +12,6 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
         /// <param name="endTime"></param>
         void DeleteLogs(long endTime);
         void WriteLog(WriteLogModel request);
-        LogItem[] Read(string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord, string? traceId);
+        LogItem[] Read(SearchRequestBody body);
     }
 }

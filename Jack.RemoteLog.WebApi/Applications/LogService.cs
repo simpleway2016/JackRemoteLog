@@ -11,7 +11,7 @@ namespace Jack.RemoteLog.WebApi.Applications
 
         }
 
-        public string[] GetSourceContextes(string applicationContext)
+        public string[] GetSourceContexts(string applicationContext)
         {
             return _logChannelRoute[applicationContext].GetAllSourceContext();
         }
@@ -21,9 +21,9 @@ namespace Jack.RemoteLog.WebApi.Applications
             _logChannelRoute[request.ApplicationContext].WriteLog(request);
         }
 
-        public LogItem[] ReadLogs(string applicationContext, string sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord, string? traceId)
+        public LogItem[] ReadLogs(SearchRequestBody body)
         {
-            return _logChannelRoute[applicationContext].Read(sourceContext,level, startTimeStamp, endTimeStamp, keyWord, traceId);
+            return _logChannelRoute[body.AppContext].Read(body);
         }
 
         public string[] GetApplications()

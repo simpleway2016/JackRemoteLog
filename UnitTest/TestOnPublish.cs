@@ -48,21 +48,21 @@ namespace UnitTest
         public void ReadLog()
         {
             var logService = _serviceProvider.GetService<LogService>();
-            var logs = logService.ReadLogs("UnitTest", "test", Microsoft.Extensions.Logging.LogLevel.Debug, DateTimeOffset.FromFileTime(DateTime.Now.AddDays(-3).ToFileTime()).ToUnixTimeMilliseconds(), null, "≤‚ ‘");
+            var logs = logService.ReadLogs("UnitTest", new string[] { "test" }, Microsoft.Extensions.Logging.LogLevel.Debug, DateTimeOffset.FromFileTime(DateTime.Now.AddDays(-3).ToFileTime()).ToUnixTimeMilliseconds(), null, new string[] { "≤‚ ‘" } , null);
         }
 
         [TestMethod]
         public void GetSourceContextes()
         {
             var logService = _serviceProvider.GetService<LogService>();
-            var ret = logService.GetSourceContextes("UnitTest");
+            var ret = logService.GetSourceContexts("UnitTest");
         }
 
         [TestMethod]
         public void DeleteFile()
         {
             var logService = _serviceProvider.GetService<LogService>();
-            var logs = logService.ReadLogs("TradeSystem.AssetServiceHost-test",null,null, DateTimeOffset.FromFileTime(DateTime.Now.AddDays(-3).ToFileTime()).ToUnixTimeMilliseconds(), null, null);
+            var logs = logService.ReadLogs("TradeSystem.AssetServiceHost-test",null,null, DateTimeOffset.FromFileTime(DateTime.Now.AddDays(-3).ToFileTime()).ToUnixTimeMilliseconds(), null, null , null);
 
             ((IJob)new AutoDeleteLogs()).Execute(null).Wait();
             Thread.Sleep(5000);

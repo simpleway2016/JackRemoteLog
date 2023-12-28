@@ -1,4 +1,6 @@
-﻿using System.Security.Cryptography;
+﻿using Jack.RemoteLog.WebApi.Dtos;
+using JMS.Common;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Jack.RemoteLog.WebApi
@@ -7,6 +9,8 @@ namespace Jack.RemoteLog.WebApi
     {
         public static IConfiguration Configuration { get; set; }
         public static IServiceProvider ServiceProvider { get; set; }
+
+        public static ConfigurationValue<UserInfo[]> UserInfos { get; set; }
 
         static int _pageSize;
         public static int PageSize

@@ -8,5 +8,6 @@
         public string Content { get; set; }
         public int? TotalHits { get; set; }
         public string TraceId { get; set; }
+        public string[] SearchWords { get; set; }
     }
 }

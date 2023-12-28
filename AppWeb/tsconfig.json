@@ -1,0 +1,18 @@
+{
+  "files": [],
+  "extends": "./tsconfig.extends.json",
+  "compilerOptions": {
+    "noImplicitAny": false
+  },
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.vitest.json"
+    }
+  ]
+}

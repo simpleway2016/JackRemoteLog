@@ -1,5 +1,6 @@
 using Jack.RemoteLog.WebApi.Applications;
 using Jack.RemoteLog.WebApi.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using System.Text;
@@ -44,25 +45,31 @@ namespace Jack.RemoteLog.WebApi.Controllers
             logService.WriteLog(writeLogModel);
         }
 
-        [HttpGet]
-        public LogItem[] ReadLogs(string applicationContext, string? sourceContext, LogLevel? level, long startTimeStamp, long? endTimeStamp, string? keyWord,string? traceId)
+        [HttpPost]
+        public LogItem[] ReadLogs([FromBody]SearchRequestBody body)
         {
-            if (sourceContext != null)
+            if (body.Sources != null)
             {
-                if (sourceContext.Contains("\r") || sourceContext.Contains("\n"))
+                for(int i = 0; i < body.Sources.Length; i ++)
                 {
-                    sourceContext = sourceContext.Replace("\r", "-").Replace("\n", "-");
+                    var source = body.Sources[i];
+                    if (source.Contains("\r") || source.Contains("\n"))
+                    {
+                        body.Sources[i] = source.Replace("\r", "-").Replace("\n", "-");
+                    }
                 }
             }
-            return _logService.ReadLogs(applicationContext, sourceContext, level, startTimeStamp, endTimeStamp, keyWord, traceId);
+            return _logService.ReadLogs(body);
         }
 
+        [Authorize]
         [HttpGet]
-        public string[] GetSourceContextes(string applicationContext)
+        public string[] GetSourceContexts(string applicationContext)
         {
-            return _logService.GetSourceContextes(applicationContext).OrderBy(m=>m).ToArray();
+            return _logService.GetSourceContexts(applicationContext).OrderBy(m=>m).ToArray();
         }
 
+        [Authorize]
         [HttpGet]
         public string[] GetApplications()
         {

@@ -12,6 +12,7 @@ using System;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Util;
 using static Lucene.Net.Search.FieldCache;
+using Lucene.Net.Support;
 
 
 namespace Jack.RemoteLog.WebApi.Infrastructures
@@ -26,6 +27,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
         ILogger<LuceneContentReader> _logger;
         bool _disposed;
         DirectoryInfo INDEX_DIR;
+  
         public LuceneContentReader(string folderPath, ISourceContextCollection sourceContextReader)
         {
             this._folderPath = folderPath;
@@ -45,16 +47,15 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             }
         }
 
-        private BooleanQuery AnalyzerKeyword(string keyword, string field, out List<string> outputWords)
+        private BooleanQuery AnalyzerKeyword(string[] keywords, string field, out List<string> outputWords)
         {
             outputWords = new List<string>();
             BooleanQuery ret = new BooleanQuery();
             try
             {
-                var arr = keyword.Split(' ');
-                foreach (var str in arr)
+                foreach (var str in keywords)
                 {
-                    if (string.IsNullOrEmpty(str))
+                    if (string.IsNullOrWhiteSpace(str))
                         continue;
 
                     StringBuilder queryStringBuilder = new StringBuilder();
@@ -80,81 +81,134 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             return ret;
         }
 
-        public LogItem[] Read(ISourceContextCollection sourceContextes, string sourceContext, Microsoft.Extensions.Logging.LogLevel? level, long startTimeStamp, long? endTimeStamp, string keyWord,string? traceId)
+        public LogItem[] Read(ISourceContextCollection allSourceContexts, SearchRequestBody body)
         {
             try
             {
 
                 using (var indexer = DirectoryReader.Open(FSDirectory.Open(INDEX_DIR)))
                 {
-                    IndexSearcher _searcher = new IndexSearcher(indexer);
-                    var findSourceId = sourceContextes.GetId(sourceContext);
+                    IndexSearcher searcher = new IndexSearcher(indexer);
+
                     QueryParser qp = new QueryParser(Lucene.Net.Util.LuceneVersion.LUCENE_48, "Content", _analyzer);
 
-                    var timequery = NumericRangeQuery.NewInt64Range("Timestamp", startTimeStamp, endTimeStamp, true, true);
+                    var timequery = NumericRangeQuery.NewInt64Range("Timestamp", body.Start, body.End, true, true);
                     BooleanQuery booleanClauses = new BooleanQuery();
 
                     booleanClauses.Add(timequery, Occur.MUST);
-                    if (findSourceId != 0)
-                    {
-                        //var sourceidQuery = NumericRangeQuery.NewInt32Range("SourceContextId", findSourceId, findSourceId, true, true);
-                        //booleanClauses.Add(sourceidQuery, Occur.MUST);
 
-                        BytesRef bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
-                        NumericUtils.Int32ToPrefixCoded(findSourceId, 0, bytes);
-                        booleanClauses.Add(new TermQuery(new Term("SourceContextId", bytes)), Occur.MUST);
+                    if (body.Sources != null && body.Sources.Length > 0)
+                    {
+                        BooleanQuery sourceBooleanClauses = new BooleanQuery();
+
+
+                        foreach (var source in body.Sources)
+                        {
+                            var findSourceId = allSourceContexts.GetId(source);
+                            if (findSourceId != 0)
+                            {
+                                //var sourceidQuery = NumericRangeQuery.NewInt32Range("SourceContextId", findSourceId, findSourceId, true, true);
+                                //booleanClauses.Add(sourceidQuery, Occur.MUST);
+
+                                BytesRef bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
+                                NumericUtils.Int32ToPrefixCoded(findSourceId, 0, bytes);
+                                sourceBooleanClauses.Add(new TermQuery(new Term("SourceContextId", bytes)), Occur.SHOULD);
+                            }
+                        }
+
+                        if (sourceBooleanClauses.Clauses.Count > 0)
+                        {
+                            booleanClauses.Add(sourceBooleanClauses, Occur.MUST);
+                        }
                     }
 
-                    if (level != null)
+
+                    if (body.Levels != null && body.Levels.Length > 0)
                     {
+                        BooleanQuery levelBooleanClauses = new BooleanQuery();
+
+
                         //var levelQuery = NumericRangeQuery.NewInt32Range("Level", (int)level, (int)level, true, true);
                         //booleanClauses.Add(levelQuery, Occur.MUST);
-                        BytesRef bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
-                        NumericUtils.Int32ToPrefixCoded((int)level, 0, bytes);
-                        booleanClauses.Add(new TermQuery(new Term("Level", bytes)), Occur.MUST);
+                        foreach (var level in body.Levels)
+                        {
+                            BytesRef bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
+                            NumericUtils.Int32ToPrefixCoded((int)level, 0, bytes);
+                            levelBooleanClauses.Add(new TermQuery(new Term("Level", bytes)), Occur.SHOULD);
+                        }
+
+                        if (levelBooleanClauses.Clauses.Count > 0)
+                        {
+                            booleanClauses.Add(levelBooleanClauses, Occur.MUST);
+                        }
                     }
 
-                    if(!string.IsNullOrWhiteSpace(traceId))
+                    if (body.TraceIds != null)
                     {
-                        booleanClauses.Add(new TermQuery(new Term("TraceId", traceId)), Occur.MUST);
+                        BooleanQuery traceBooleanClauses = new BooleanQuery();
+
+
+                        foreach (var traceId in body.TraceIds)
+                        {
+                            if (string.IsNullOrWhiteSpace(traceId))
+                                continue;
+
+                            traceBooleanClauses.Add(new TermQuery(new Term("TraceId", traceId)), Occur.SHOULD);
+                        }
+                        if (traceBooleanClauses.Clauses.Count > 0)
+                        {
+                            booleanClauses.Add(traceBooleanClauses, Occur.MUST);
+                        }
                     }
 
                     List<string> words = null;
-                    if (string.IsNullOrEmpty(keyWord) == false)
+                    if (body.KeyWords != null)
                     {
-                        Query query = AnalyzerKeyword(keyWord, "Content", out words);
-                        booleanClauses.Add(query, Occur.MUST);
+                        BooleanQuery query = AnalyzerKeyword(body.KeyWords, "Content", out words);
+
+                        if (query.Clauses.Count > 0)
+                        {
+                            booleanClauses.Add(query, Occur.MUST);
+                        }
                     }
 
                     Sort sort = new Sort(new SortField("Timestamp", SortFieldType.INT64, false));
-                    TopDocs tds = _searcher.Search(booleanClauses, Global.PageSize, sort);
+                    TopDocs tds = searcher.Search(booleanClauses, Global.PageSize, sort);
                     LogItem[] ret = new LogItem[tds.ScoreDocs.Length];
+
+                    if (words != null)
+                    {
+                        foreach (var key in body.KeyWords)
+                        {
+                            if (words.Contains(key, StringComparer.OrdinalIgnoreCase) == false)
+                            {
+                                words.Insert(0, key);
+                            }
+                        }
+                    }
+
                     for (int i = 0; i < tds.ScoreDocs.Length; i++)
                     {
                         var sd = tds.ScoreDocs[i];
-                        Document doc = _searcher.Doc(sd.Doc);
+                        Document doc = searcher.Doc(sd.Doc);
                         int.TryParse(doc.Get("Level"), out int itemlevel);
                         int.TryParse(doc.Get("SourceContextId"), out int sourceContextId);
                         long.TryParse(doc.Get("Timestamp"), out long timestamp);
-                         
+
                         ret[i] = new LogItem
                         {
                             Content = doc.Get("Content"),
                             Level = (Microsoft.Extensions.Logging.LogLevel)itemlevel,
-                            SourceContext = sourceContext != null ? sourceContext : _sourceContextReader.GetSourceContext(sourceContextId),
+                            SourceContext = _sourceContextReader.GetSourceContext(sourceContextId),
                             Timestamp = timestamp,
                             TraceId = doc.Get("TraceId")
                         };
 
-                        if (ret[i].Content != null && words != null)
-                        {
-                            foreach (var word in words)
-                            {
-                                ret[i].Content = ret[i].Content.Replace(word, $"<font color='#209aed'><b>{word}</b></font>");
-                            }
-                        }
                         if (i == 0)
+                        {
                             ret[i].TotalHits = tds.TotalHits;
+                            ret[i].SearchWords = words.ToArray();
+                        }
                     }
                     words?.Clear();
                     return ret;
@@ -190,30 +244,38 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                 Term[] term = ((PhraseQuery)query).GetTerms();
                 return term.Select(t => t.Text()).ToArray();
             }
-            else if (query is BooleanQuery)
+            else if (query is BooleanQuery bq)
             {
-                BooleanClause[] clauses = ((BooleanQuery)query).GetClauses();
-                List<string> analyzerWords = new List<string>();
-                foreach (BooleanClause clause in clauses)
-                {
-                    Query childQuery = clause.Query;
-                    if (childQuery is TermQuery)
-                    {
-                        Term term = ((TermQuery)childQuery).Term;
-                        analyzerWords.Add(term.Text());
-                    }
-                    else if (childQuery is PhraseQuery)
-                    {
-                        Term[] term = ((PhraseQuery)childQuery).GetTerms();
-                        analyzerWords.AddRange(term.Select(t => t.Text()));
-                    }
-                }
-                return analyzerWords.ToArray();
+                return AnalyzerBooleanQuery(bq);
             }
             else
             {
                 return new string[] { keyword };
             }
+        }
+        static string[] AnalyzerBooleanQuery(BooleanQuery booleanClauses)
+        {
+            BooleanClause[] clauses = booleanClauses.GetClauses();
+            List<string> analyzerWords = new List<string>();
+            foreach (BooleanClause clause in clauses)
+            {
+                Query childQuery = clause.Query;
+                if (childQuery is TermQuery)
+                {
+                    Term term = ((TermQuery)childQuery).Term;
+                    analyzerWords.Add(term.Text());
+                }
+                else if (childQuery is PhraseQuery)
+                {
+                    Term[] term = ((PhraseQuery)childQuery).GetTerms();
+                    analyzerWords.AddRange(term.Select(t => t.Text()));
+                }
+                else if (childQuery is BooleanQuery bq)
+                {
+                    analyzerWords.AddRange(AnalyzerBooleanQuery(bq));
+                }
+            }
+            return analyzerWords.ToArray();
         }
 
         /// <summary>

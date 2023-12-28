@@ -15,6 +15,7 @@ using Jack.RemoteLog.WebApi.Dtos;
 using Org.BouncyCastle.X509;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection.PortableExecutable;
+using Microsoft.AspNetCore.Mvc;
 
 Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 ThreadPool.GetMinThreads(out int w, out int c);
@@ -66,6 +67,8 @@ if (!string.IsNullOrWhiteSpace(certPath))
     });
 }
 
+builder.Services.AddJmsTokenAspNetCore(null, new string[] { "Authorization" });
+
 // Add services to the container.
 Global.Configuration = builder.Configuration;
 
@@ -73,7 +76,10 @@ builder.Services.AddControllers();
 
 builder.Services.AddSingleton<LogChannelRoute>();
 builder.Services.AddSingleton<LogService>();
-
+builder.Services.Configure<ApiBehaviorOptions>((o) =>
+{
+    o.SuppressModelStateInvalidFilter = true;
+});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("abc", builder =>
@@ -89,75 +95,83 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
 Global.ServiceProvider = app.Services;
-// Configure the HTTP request pipeline.
+Global.UserInfos = app.Configuration.GetSection("Users").GetNewest<UserInfo[]>();
+
+
+var logService = app.Services.GetService<LogService>();
+var errorUserMarker = new ErrorUserMarker();
 
 
 app.UseStaticFiles();
 //开启index.html
 app.UseFileServer();
 
-app.UseAuthorization();
-app.UseCors("abc");
-app.MapControllers();
 
-var logService = app.Services.GetService<LogService>();
-var userInfos = app.Configuration.GetSection("Users").GetNewest<UserInfo[]>();
-var errorUserMarker = new ErrorUserMarker();
 
 app.Use((context, next) =>
 {
     bool pass = false;
     bool iswriting = context.Request.Path.ToString().Contains("/WriteLog");
+    if (iswriting)
+    {
+        if (Global.UserInfos.Current == null || Global.UserInfos.Current.Any(m=>m.Writeable) == false)
+        {
+            pass = true;
+        }
+        else if (context.Request.Headers.TryGetValue("Authorization", out StringValues authorization))
+        {
+            var ip = context.Connection.RemoteIpAddress.ToString();
+            if (!errorUserMarker.CheckUserIp(ip))
+            {
+                context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"Welcome to Jack.RemoteLog\"");
+                context.Response.StatusCode = 401;
+                return Task.CompletedTask;
+            }
 
-    if (userInfos.Current == null || userInfos.Current.Length == 0)
-    {
-        pass = true;
-    }
-    else if (context.Request.Headers.TryGetValue("Authorization", out StringValues authorization))
-    {
-        var ip = context.Connection.RemoteIpAddress.ToString();
-        if (!errorUserMarker.CheckUserIp(ip))
+            var base64 = authorization.ToString().Substring(6);
+            var name_pwds = Encoding.UTF8.GetString(Convert.FromBase64String(base64)).Split(':');
+            var user = Global.UserInfos.Current?.FirstOrDefault(m => string.Equals(name_pwds[0], m.Name, StringComparison.OrdinalIgnoreCase));
+            if (user == null || user.Password != name_pwds[1] || (iswriting && user.Writeable == false))
+            {
+                //不通过身份验证
+                if (user == null || user.Password != name_pwds[1])
+                {
+                    errorUserMarker.Error(ip);
+                }
+            }
+            else
+            {
+                pass = true;
+                errorUserMarker.Clear(ip);
+            }
+        }
+
+        if (!pass)
         {
             context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"Welcome to Jack.RemoteLog\"");
             context.Response.StatusCode = 401;
             return Task.CompletedTask;
         }
 
-        var base64 = authorization.ToString().Substring(6);
-        var name_pwds = Encoding.UTF8.GetString(Convert.FromBase64String(base64)).Split(':');
-        var user = userInfos.Current?.FirstOrDefault(m => string.Equals(name_pwds[0], m.Name, StringComparison.OrdinalIgnoreCase));
-        if (user == null || user.Password != name_pwds[1] || (iswriting && user.Writeable == false))
+        if (context.Request.Path.ToString().Contains("/WriteLog"))
         {
-            //不通过身份验证
-            if (user == null || user.Password != name_pwds[1])
-            {
-                errorUserMarker.Error(ip);
-            }
-        }
-        else
-        {
-            pass = true;
-            errorUserMarker.Clear(ip);
+            //如果直接请求controller里面post方法，会导致查询变慢，访问的线程越多就越慢，原因不明
+            return LogController.HandleWriteLog(context, logService);
         }
     }
-
-    if (!pass)
-    {
-        context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"Welcome to Jack.RemoteLog\"");
-        context.Response.StatusCode = 401;
-        return Task.CompletedTask;
-    }
-
-    if (context.Request.Path.ToString().Contains("/WriteLog"))
-    {
-        //如果直接请求controller里面post方法，会导致查询变慢，访问的线程越多就越慢，原因不明
-        return LogController.HandleWriteLog(context, logService);
-    }
-
     return next();
 });
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseCors("abc");
+app.MapControllers();
+
+
+
+
 
 ISchedulerFactory sf = new StdSchedulerFactory();
 IScheduler scheduler = sf.GetScheduler().ConfigureAwait(false).GetAwaiter().GetResult();
