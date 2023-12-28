@@ -21,7 +21,7 @@ export class GlobalInfo {
         SelectedLevels:<any[]>[],
         SelectedTraceIds:<any[]>[],
         SearchKeys:<any[]>[],
-        StartTime:"",
+        StartTime:"2020-1-1",
         EndTime:"",
     });
 

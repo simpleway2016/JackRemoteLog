@@ -8,6 +8,85 @@ const isBusy = ref(false);
 const datas = ref(<any[]>[]);
 const HitWordFormatBegin = "<font color='#209aed'><b>";
 const HitWordFormatEnd = "</b></font>";
+function merge(objects: any[]) {
+    // 合并范围重叠的对象
+    const mergedObjects = [];
+    let currentObject = objects[0];
+
+    for (let i = 1; i < objects.length; i++) {
+        const nextObject = objects[i];
+
+        if (nextObject.index <= currentObject.index + currentObject.length) {
+            // 范围重叠，更新当前对象的长度
+            currentObject.length = Math.max(
+                currentObject.index + currentObject.length,
+                nextObject.index + nextObject.length
+            ) - currentObject.index;
+        } else {
+            // 范围不重叠，将当前对象添加到合并后的数组中
+            mergedObjects.push(currentObject);
+            currentObject = nextObject;
+        }
+    }
+
+    // 将最后一个对象添加到合并后的数组中
+    mergedObjects.push(currentObject);
+    return mergedObjects;
+}
+
+function formatContent(words: string[], content: string): string {
+    var lowContent = content.toLowerCase();
+    var findlist = <any[]>[];
+
+    words.forEach(word => {
+        word = word.toLowerCase();
+        var startIndex = 0;
+        while (true) {
+            var index = lowContent.indexOf(word, startIndex);
+            if (index >= 0) {
+                findlist.push({
+                    index: index,
+                    length: word.length
+                });
+                startIndex = index + word.length;
+            }
+            else {
+                break;
+            }
+        }
+    });
+
+    if (findlist.length > 0) {
+        //整合交集
+        console.log("原始：", findlist);
+        findlist.sort((a, b) => a.index - b.index);
+
+        findlist = merge(findlist);
+        console.log("整合：", findlist);
+
+        var ret = "";
+        var endContentIndex = 0;
+        findlist.forEach(obj => {
+            if( obj.index > endContentIndex )
+            {
+                ret += content.substring(endContentIndex, obj.index);
+            }
+
+            ret += HitWordFormatBegin;
+            ret += content.substring(obj.index, obj.index + obj.length);
+            ret += HitWordFormatEnd;
+            endContentIndex = obj.index + obj.length;
+        });
+
+        if (endContentIndex >= 0 && endContentIndex < content.length) {
+            ret += content.substring(endContentIndex);
+        }
+        return ret;
+    }
+
+    return content;
+
+}
 
 onMounted(() => {
     init();
@@ -117,6 +196,12 @@ const searchClick = async () => {
             }
             if (ret.length) {
                 GlobalInfo.PublicInfo.SelectedAppContexts[i].startTimestamp = ret[ret.length - 1].timestamp;
+                var words = ret[0].searchWords;
+                if (words && words.length) {
+                    ret.forEach((item: any) => {
+                        item.content = formatContent(words, item.content);
+                    });
+                }
             }
             list.push(...ret);
         }
