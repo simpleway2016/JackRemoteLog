@@ -1,5 +1,5 @@
 @chcp 65001
-set version=1.0.7
+set version=2.0.0
 dotnet publish ..\Jack.RemoteLog.WebApi\Jack.RemoteLog.WebApi.csproj -c release -o Publish\Linux\RemoteLogServer --self-contained false --runtime linux-x64
 
 docker build -t jackframework/jackremotelogwebapi:%version% -f dockerfile_remotelog .
