@@ -17,6 +17,7 @@
 mono_crash.*
 
 # Build results
+/Jack.RemoteLog.WebApi/wwwroot/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -361,3 +362,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Jack.RemoteLog.WebApi/wwwroot/index.html
