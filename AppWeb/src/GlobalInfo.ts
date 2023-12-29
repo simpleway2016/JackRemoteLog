@@ -9,20 +9,18 @@ export class GlobalInfo {
     });
 
     static PublicInfo = reactive({
-        AppContexts : <any[]>[],
-        LevelObjs:[
-            {name:"Trace" , value:0},
-            {name:"Debug" , value:1},
-            {name:"Information" , value:2},
-            {name:"Warning" , value:3},
-            {name:"Error" , value:4},
-            {name:"Critical" , value:5}],
-        SelectedAppContexts:<any[]>[],
-        SelectedLevels:<any[]>[],
-        SelectedTraceIds:<any[]>[],
-        SearchKeys:<any[]>[],
-        StartTime:"2020-1-1",
-        EndTime:"",
+        AppContexts: <any[]>[],
+        LevelObjs: [
+            { name: "Trace", value: 0 },
+            { name: "Debug", value: 1 },
+            { name: "Information", value: 2 },
+            { name: "Warning", value: 3 },
+            { name: "Error", value: 4 },
+            { name: "Critical", value: 5 }],
+        SelectedAppContexts: <any[]>[],
+        SelectedLevels: <any[]>[],
+        SelectedTraceIds: <any[]>[],
+        SearchKeys: <any[]>[]
     });
 
     static ServerUrl: string = <any>process.env.ServerUrl;
@@ -49,11 +47,21 @@ export class GlobalInfo {
             });
         }
         else {
-            toast(JSON.stringify(err), {
-                position: POSITION.BOTTOM_CENTER,
-                closeOnClick: true,
-                timeout: false
-            });
+            var msg = JSON.stringify(err);
+            if (msg == "{}") {
+                msg = "发生错误";
+                toast(msg, {
+                    position: POSITION.BOTTOM_CENTER
+                });
+            }
+            else{
+                toast(msg, {
+                    position: POSITION.BOTTOM_CENTER,
+                    closeOnClick: true,
+                    timeout: false
+                });
+            }
+            
         }
     }
 
@@ -147,13 +155,13 @@ export class GlobalInfo {
 
     };
 
-     /**
-     * 提交表单
-     * @param url 根目录路径 如：/Doc
-     * @param bodyObj 参数对象
-     * @returns 服务器返回信息
-     */
-     static postForBlob = async (url: string, bodyObj: any): Promise<Blob> => {
+    /**
+    * 提交表单
+    * @param url 根目录路径 如：/Doc
+    * @param bodyObj 参数对象
+    * @returns 服务器返回信息
+    */
+    static postForBlob = async (url: string, bodyObj: any): Promise<Blob> => {
 
         var bodyStr: string = "";
 
@@ -303,13 +311,13 @@ export class GlobalInfo {
 
     };
 
-     /**
-     * 
-     * @param url 
-     * @param bodyObj 
-     * @returns 
-     */
-     static getForBlob = async (url: string, bodyObj: any, token: any = null): Promise<Blob> => {
+    /**
+    * 
+    * @param url 
+    * @param bodyObj 
+    * @returns 
+    */
+    static getForBlob = async (url: string, bodyObj: any, token: any = null): Promise<Blob> => {
 
         var bodyStr: string = "";
 
@@ -346,7 +354,7 @@ export class GlobalInfo {
             }
         });
 
-       
+
         if (ret.status >= 300 || ret.status < 200) {
             var text = await ret.text();
             if (text)

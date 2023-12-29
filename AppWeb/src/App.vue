@@ -26,7 +26,7 @@ const loadAppContexts = async () => {
             apps.forEach((context: any) => {
                 publicInfo.AppContexts.push({
                     name: context,
-                    startTimestamp: undefined,
+                    startTimeStamp: undefined,
                     SourceContexts: [],
                     SelectedSourceContexts: [],
                 });
@@ -49,6 +49,12 @@ const searchKeyUp = (e: KeyboardEvent) => {
 
 const addContext = (context: any) => {
     if (publicInfo.SelectedAppContexts.some(x => x == context) == false) {
+
+        var arr = publicInfo.SelectedAppContexts.filter(x=>x.startTimeStamp).sort( (a,b)=>a.startTimeStamp - b.startTimeStamp );
+        if(arr.length){
+            context.startTimeStamp = arr[arr.length - 1].startTimeStamp;
+            console.log("时间戳设置为：" , context.startTimeStamp);
+        }
         publicInfo.SelectedAppContexts.push(context);
         loadAppSourceContext(context);
     }
@@ -98,6 +104,7 @@ const cancelContext = (context: any) => {
     var index = publicInfo.SelectedAppContexts.indexOf(context);
     if (index >= 0) {
         publicInfo.SelectedAppContexts.splice(index, 1);
+        context.startTimeStamp = undefined;
         context.SourceContexts = [];
         context.SelectedSourceContexts = [];
     }
@@ -137,51 +144,6 @@ const logout = () => {
 
 <template>
     <div class="main">
-        <!-- //////////////////////////////////////////////////////////////////////////// -->
-        <!-- START TOP -->
-        <div id="top">
-
-            <!-- Start App Logo -->
-            <div class="applogo">
-                <a href="index.html" class="logo" style="font-size: 20px;">RemoteLog</a>
-            </div>
-            <!-- End App Logo -->
-
-            <!-- Start Sidebar Show Hide Button -->
-            <a class="sidebar-open-button" @click="showHideLeftMenu"><i class="fa fa-bars"></i></a>
-            <a class="sidebar-open-button-mobile"><i class="fa fa-bars"></i></a>
-            <!-- End Sidebar Show Hide Button -->
-
-            <!-- Start Searchbox -->
-            <div class="searchform">
-                <input type="text" class="searchbox" @keyup="searchKeyUp" 
-                    placeholder="Search">
-                <span class="searchbutton"><i class="fa fa-search"></i></span>
-            </div>
-            <!-- End Searchbox -->
-
-
-
-            <!-- Start Top Right -->
-            <ul class="top-right">
-
-                <li class="dropdown link">
-                    <div style="display: flex;flex-direction: row;align-items: center;cursor: pointer;"
-                        data-toggle="dropdown" class="dropdown-toggle profilebox"><img src="/img/profileimg.png"
-                            alt="img"><b>{{ userInfo.Name }}</b><span class="caret"></span></div>
-                    <ul class="dropdown-menu dropdown-menu-list dropdown-menu-right">
-                        <li role="presentation" class="dropdown-header">用户中心</li>
-                        <li><a @click="logout"><i class="fa falist fa-power-off"></i> 退出登录</a></li>
-                    </ul>
-                </li>
-
-            </ul>
-            <!-- End Top Right -->
-
-        </div>
-        <!-- END TOP -->
-        <!-- //////////////////////////////////////////////////////////////////////////// -->
-
         <!-- bottom -->
         <div id="bottom">
             <!-- //////////////////////////////////////////////////////////////////////////// -->
@@ -330,7 +292,7 @@ const logout = () => {
 
 #bottom {
     position: absolute;
-    top: 60px;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
@@ -357,6 +319,7 @@ const logout = () => {
     width: 100%;
     height: 100%;
     background-color: #F5F5F5;
+    z-index: 10;
 }
 
 .sidetitle {

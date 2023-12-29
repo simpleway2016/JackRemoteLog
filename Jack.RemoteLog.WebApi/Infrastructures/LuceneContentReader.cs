@@ -208,6 +208,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                         {
                             ret[i].TotalHits = tds.TotalHits;
                             ret[i].SearchWords = words.ToArray();
+                            ret[i].PageSize = Global.PageSize;
                         }
                     }
                     words?.Clear();

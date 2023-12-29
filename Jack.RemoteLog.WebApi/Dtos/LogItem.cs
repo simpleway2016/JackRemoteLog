@@ -9,5 +9,6 @@
         public int? TotalHits { get; set; }
         public string TraceId { get; set; }
         public string[] SearchWords { get; set; }
+        public int? PageSize { get; set; }
     }
 }

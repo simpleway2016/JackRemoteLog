@@ -23,8 +23,8 @@ onMounted(async ()=>{
         }
     }
 
-    if(!token){
-        var needlogin = await GlobalInfo.get("/User/NeedLogin",null);
+    if(!GlobalInfo.UserInfo.Token){
+        var needlogin = parseInt( await GlobalInfo.get("/User/NeedLogin",null));
         if(!needlogin){
             GlobalInfo.UserInfo.Name = "Admin"
             GlobalInfo.UserInfo.Token = await GlobalInfo.postJson("/User/Login" , null);
