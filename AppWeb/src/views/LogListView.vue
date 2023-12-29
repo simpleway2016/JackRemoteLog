@@ -6,6 +6,7 @@ import Loading from "@/components/Loading.vue";
 import { ref, onMounted, watch, onUpdated } from "vue"
 var autoLoadTimer = 0;
 var updateAction: any;
+var timeRangePicker: any;
 const showAppContext = ref(false);
 const isReady = ref(false);
 const dataPickerEle = ref(<HTMLElement><any>null);
@@ -122,14 +123,15 @@ watch(autoLoadMore, (newValue) => {
     }
 });
 
-onMounted(() => {
+const resetTimeRange = () => {
+    if (timeRangePicker) {
+        timeRangePicker.unbind();
+    }
 
     timeRange.value = (<any>window).moment().add(-10, 'minute').format("YYYY/MM/DD HH:mm:ss") + " - " +
         (<any>window).moment().startOf('day').add(1, 'month').format("YYYY/MM/DD HH:mm:ss");
 
-    init();
-
-    (<any>window).$(dataPickerEle.value).daterangepicker({
+    timeRangePicker = (<any>window).$(dataPickerEle.value).daterangepicker({
         timePicker: true,
         timePickerIncrement: 1,
         timePickerSeconds: true,
@@ -149,6 +151,14 @@ onMounted(() => {
     }, (start: any, end: any, label: any) => {
         //console.log(start.format("YYYY/MM/DD HH:mm:ss"), end.format("YYYY/MM/DD HH:mm:ss"), label);
     });
+}
+
+onMounted(() => {
+
+    resetTimeRange();
+
+    init();
+
 });
 
 const init = async () => {
@@ -445,7 +455,7 @@ const showMore = async (isAuto: boolean) => {
             <div class="hor">
                 <div class="controls">
                     <div class="input-prepend input-group" style="width: 430px;">
-                        <span class="add-on input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <span title="重置时间范围" class="add-on input-group-addon" style="cursor: pointer;" @click="resetTimeRange"><i class="fa fa-calendar"></i></span>
                         <input v-model="timeRange" type="text" ref="dataPickerEle" class="form-control span4" />
                     </div>
                 </div>
