@@ -42,7 +42,7 @@ app.MapControllers();
 app.Use((c, next) => {
     MyLogFilter.TrackId.Value = Guid.NewGuid().ToString();
     c.RequestServices.GetService<ILogger<Program>>().LogInformation($"有访问-{c.Request.Path}");
-    serviceProvider2.GetService<ILogger<Program>>().LogInformation($"有访问-{c.Request.Host}");
+    serviceProvider2.GetService<ILogger<Program>>().LogError($"有访问-{c.Request.Host}");
 
     MyLogFilter.TrackId.Value = null;
     return next();

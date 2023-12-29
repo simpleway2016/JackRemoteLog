@@ -7,6 +7,9 @@ import { ref, onMounted, watch, onUpdated } from "vue"
 var autoLoadTimer = 0;
 var updateAction: any;
 var timeRangePicker: any;
+const onlyErr = ref(false);
+const totalHits = ref(0);
+const totalErrs = ref(0);
 const showAppContext = ref(false);
 const isReady = ref(false);
 const dataPickerEle = ref(<HTMLElement><any>null);
@@ -239,6 +242,9 @@ const searchClick = async () => {
         GlobalInfo.showError("请先添加AppContext");
         return;
     }
+
+    onlyErr.value = false;
+    totalErrs.value = 0;
     autoLoadMore.value = false;
     isReady.value = true;
 
@@ -278,6 +284,8 @@ const searchClick = async () => {
 
         var list = [];
         var hasmoreFlag = false;
+        var total = 0;
+        var errCount = 0;
         showAppContext.value = GlobalInfo.PublicInfo.SelectedAppContexts.length > 1;
         for (var i = 0; i < GlobalInfo.PublicInfo.SelectedAppContexts.length; i++) {
             var app = GlobalInfo.PublicInfo.SelectedAppContexts[i];
@@ -294,9 +302,13 @@ const searchClick = async () => {
             var ret = JSON.parse(await GlobalInfo.postJson("/Log/ReadLogs", param));
             ret.forEach((item: any) => {
                 item.appContext = param.AppContext;
+                if (item.level == 4) {
+                    errCount++;
+                }
             });
 
             if (ret.length) {
+                total += ret[0].totalHits;
                 if (ret.length >= ret[0].pageSize) {
                     hasmoreFlag = true;
                 }
@@ -315,6 +327,8 @@ const searchClick = async () => {
         });
 
         hasMore.value = hasmoreFlag;
+        totalHits.value = total;
+        totalErrs.value = errCount;
         datas.value.push(...list);
         checkIfAutoLoadMore();
     } catch (error) {
@@ -366,6 +380,9 @@ const showMore = async (isAuto: boolean) => {
 
         var list = <any[]>[];
         var hasmoreFlag = false;
+        var total = 0;
+        var errCount = 0;
+
         showAppContext.value = GlobalInfo.PublicInfo.SelectedAppContexts.length > 1;
 
         for (var i = 0; i < GlobalInfo.PublicInfo.SelectedAppContexts.length; i++) {
@@ -381,11 +398,10 @@ const showMore = async (isAuto: boolean) => {
             };
 
             var ret = JSON.parse(await GlobalInfo.postJson("/Log/ReadLogs", param));
-            ret.forEach((item: any) => {
-                item.appContext = param.AppContext;
-            });
 
             if (ret.length) {
+                total += ret[0].totalHits;
+
                 if (ret.length >= ret[0].pageSize) {
                     hasmoreFlag = true;
                 }
@@ -400,15 +416,26 @@ const showMore = async (isAuto: boolean) => {
             }
 
             ret.forEach((item: any) => {
+                item.appContext = param.AppContext;
+
                 for (var i = datas.value.length - 1; i >= 0; i--) {
                     var existItem = datas.value[i];
                     if (existItem.appContext == item.appContext) {
-                        if (existItem.timestamp == item.timestamp && existItem.content == item.content)
+                        if (existItem.timestamp == item.timestamp && existItem.content == item.content) {
+                            total--;
+
                             return;
+                        }
                         else if (existItem.timestamp < item.timestamp)
                             break;
                     }
                 }
+
+                if (item.level == 4) {
+                    errCount++;
+                }
+
+
                 list.push(item);
             });
 
@@ -428,7 +455,20 @@ const showMore = async (isAuto: boolean) => {
                 };
             }
 
-            datas.value.push(...list);
+            totalHits.value = datas.value.length + total;
+            totalErrs.value += errCount;
+
+            if (datas.value.length && list[0].timestamp < datas.value[datas.value.length - 1].timestamp) {
+                console.log("重新排序");
+                datas.value.push(...list);
+                datas.value.sort((a, b) => {
+                    return a.timestamp - b.timestamp;
+                });
+            }
+            else {
+                datas.value.push(...list);
+            }
+
         }
         checkIfAutoLoadMore();
     } catch (error) {
@@ -455,13 +495,19 @@ const showMore = async (isAuto: boolean) => {
             <div class="hor">
                 <div class="controls">
                     <div class="input-prepend input-group" style="width: 430px;">
-                        <span title="重置时间范围" class="add-on input-group-addon" style="cursor: pointer;" @click="resetTimeRange"><i class="fa fa-calendar"></i></span>
+                        <span title="重置时间范围" class="add-on input-group-addon" style="cursor: pointer;"
+                            @click="resetTimeRange"><i class="fa fa-calendar"></i></span>
                         <input v-model="timeRange" type="text" ref="dataPickerEle" class="form-control span4" />
                     </div>
                 </div>
 
                 <a class="btn btn-light" @click="searchClick">
                     <i class="fa fa-search"></i> 搜索</a>
+
+                <div class="info">
+                    <div class="errinfo" title="只显示错误日志" @click="onlyErr = true" v-if="totalErrs">{{ totalErrs }}</div>
+                    <div class="norinfo" title="显示全部" @click="onlyErr = false" v-if="totalHits">{{ totalHits }}</div>
+                </div>
             </div>
 
         </div>
@@ -481,21 +527,22 @@ const showMore = async (isAuto: boolean) => {
 
                         <table class="table display">
                             <tbody>
-                                <tr v-for="item, index in datas">
-                                    <td :class="{ noborder: index == 0, err: item.level == 4 }">
-                                        <div class="info">
-                                            <div class="item">{{ showTime(item.timestamp) }}</div>
-                                            <div class="item app" v-if="showAppContext">{{ item.appContext }}</div>
-                                            <div class="item">{{ item.sourceContext }}</div>
-                                            <div class="item">[{{ showLevel(item.level) }}]</div>
-                                        </div>
-                                        <div class="traceid" @click="traceIdClick(item.traceId)" v-if="item.traceId">
-                                            TraceId: {{ item.traceId }}
-                                        </div>
-                                        <div v-html="item.content"></div>
-                                    </td>
-                                </tr>
-
+                                <template v-for="item, index in datas">
+                                    <tr v-if="!onlyErr || (item.level == 4)">
+                                        <td :class="{ noborder: index == 0, err: item.level == 4 }">
+                                            <div class="info">
+                                                <div class="item">{{ showTime(item.timestamp) }}</div>
+                                                <div class="item app" v-if="showAppContext">{{ item.appContext }}</div>
+                                                <div class="item">{{ item.sourceContext }}</div>
+                                                <div class="item">[{{ showLevel(item.level) }}]</div>
+                                            </div>
+                                            <div class="traceid" @click="traceIdClick(item.traceId)" v-if="item.traceId">
+                                                TraceId: {{ item.traceId }}
+                                            </div>
+                                            <div v-html="item.content"></div>
+                                        </td>
+                                    </tr>
+                                </template>
                             </tbody>
                             <tfoot>
                                 <tr v-if="!autoLoadMore && !isBusy">
@@ -538,6 +585,30 @@ a {
 
 }
 
+.page-header .info {
+    position: absolute;
+    left: 103%;
+    top: 3px;
+    z-index: 5;
+    cursor: pointer;
+}
+
+.page-header .info .errinfo {
+    background-color: #ed719d;
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 1000px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.page-header .info .norinfo {
+    background-color: #aaa;
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 1000px;
+}
+
 .row {
     flex: 1;
     overflow-y: auto;
@@ -557,6 +628,7 @@ a {
 .hor {
     display: flex;
     flex-direction: row;
+    position: relative;
 }
 
 .hor .btn {
