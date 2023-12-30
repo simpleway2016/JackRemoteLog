@@ -22,7 +22,7 @@ const loadAppContexts = async () => {
     }
     else {
         try {
-            var apps = JSON.parse(await GlobalInfo.get("/Log/GetApplications", null));
+            var apps = JSON.parse(await GlobalInfo.get("Log/GetApplications", null));
             apps.forEach((context: any) => {
                 publicInfo.AppContexts.push({
                     name: context,
@@ -91,7 +91,7 @@ const addSearchKey = () => {
 
 const loadAppSourceContext = async (context: any) => {
     try {
-        var sources = JSON.parse(await GlobalInfo.get("/Log/GetSourceContexts", {
+        var sources = JSON.parse(await GlobalInfo.get("Log/GetSourceContexts", {
             applicationContext: context.name
         }));
         context.SourceContexts = sources;

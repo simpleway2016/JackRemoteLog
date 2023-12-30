@@ -20,7 +20,7 @@ export default defineConfig({
   define:{
     'process.env':{
       //development production test
-      'ServerUrl': process.env.NODE_ENV == "development" ? "http://127.0.0.1:9000":".."//127.0.0.1:10001 18.183.223.73
+      'ServerUrl': process.env.NODE_ENV == "development" ? "http://127.0.0.1:9000/":""//127.0.0.1:10001 18.183.223.73
     }
   }
 })

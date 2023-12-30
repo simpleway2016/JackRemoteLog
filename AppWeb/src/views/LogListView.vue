@@ -299,7 +299,7 @@ const searchClick = async () => {
                 TraceIds: GlobalInfo.PublicInfo.SelectedTraceIds
             };
 
-            var ret = JSON.parse(await GlobalInfo.postJson("/Log/ReadLogs", param));
+            var ret = JSON.parse(await GlobalInfo.postJson("Log/ReadLogs", param));
             ret.forEach((item: any) => {
                 item.appContext = param.AppContext;
                 if (item.level == 4) {
@@ -397,7 +397,7 @@ const showMore = async (isAuto: boolean) => {
                 TraceIds: GlobalInfo.PublicInfo.SelectedTraceIds
             };
 
-            var ret = JSON.parse(await GlobalInfo.postJson("/Log/ReadLogs", param));
+            var ret = JSON.parse(await GlobalInfo.postJson("Log/ReadLogs", param));
 
             if (ret.length) {
                 total += ret[0].totalHits;

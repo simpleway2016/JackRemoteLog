@@ -66,9 +66,6 @@ export class GlobalInfo {
     }
 
     static init = () => {
-        if (GlobalInfo.ServerUrl == "..") {
-            GlobalInfo.ServerUrl = `${location.protocol}//${location.host}`;
-        }
         window.setTimeout(GlobalInfo.refreshToken, GlobalInfo.RefreshTokenInterval);
     }
 

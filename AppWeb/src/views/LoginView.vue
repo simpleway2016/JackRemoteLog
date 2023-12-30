@@ -12,7 +12,7 @@ onMounted(async ()=>{
     var token = localStorage.getItem("Token");
     if(token){
         try {          
-            var userinfo = await GlobalInfo.get("/User/GetUserInfo" , null , token);
+            var userinfo = await GlobalInfo.get("User/GetUserInfo" , null , token);
             
             userinfo = JSON.parse(userinfo);
             GlobalInfo.UserInfo.Name = userinfo.name;
@@ -24,10 +24,10 @@ onMounted(async ()=>{
     }
 
     if(!GlobalInfo.UserInfo.Token){
-        var needlogin = parseInt( await GlobalInfo.get("/User/NeedLogin",null));
+        var needlogin = parseInt( await GlobalInfo.get("User/NeedLogin",null));
         if(!needlogin){
             GlobalInfo.UserInfo.Name = "Admin"
-            GlobalInfo.UserInfo.Token = await GlobalInfo.postJson("/User/Login" , null);
+            GlobalInfo.UserInfo.Token = await GlobalInfo.postJson("User/Login" , null);
         }
     }
 });
@@ -38,10 +38,10 @@ const okClick = async ()=>{
 
     isBusy.value = true;
     try {
-        var token = await GlobalInfo.postJson("/User/Login" , data);
+        var token = await GlobalInfo.postJson("User/Login" , data);
         GlobalInfo.UserInfo.Token = token;
 
-        var userinfo = await GlobalInfo.get("/User/GetUserInfo" , null);
+        var userinfo = await GlobalInfo.get("User/GetUserInfo" , null);
 
         userinfo = JSON.parse(userinfo);
         GlobalInfo.UserInfo.Name = userinfo.name;
