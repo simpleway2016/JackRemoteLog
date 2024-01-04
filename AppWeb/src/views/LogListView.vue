@@ -536,10 +536,10 @@ const showMore = async (isAuto: boolean) => {
                                                 <div class="item">{{ item.sourceContext }}</div>
                                                 <div class="item">[{{ showLevel(item.level) }}]</div>
                                             </div>
-                                            <div class="traceid" @click="traceIdClick(item.traceId)" v-if="item.traceId">
+                                            <div class="traceid tdc" @click="traceIdClick(item.traceId)" v-if="item.traceId">
                                                 TraceId: {{ item.traceId }}
                                             </div>
-                                            <div v-html="item.content"></div>
+                                            <div class="tdc" v-html="item.content"></div>
                                         </td>
                                     </tr>
                                 </template>
@@ -677,7 +677,7 @@ table .err {
     padding: 9px 15px;
 }
 
-.table td div{
+.tdc{
     width: 100%;
     word-break: break-all;
 }
