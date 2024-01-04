@@ -17,7 +17,6 @@
 mono_crash.*
 
 # Build results
-/Jack.RemoteLog.WebApi/wwwroot/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
