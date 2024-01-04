@@ -162,6 +162,7 @@ const logout = () => {
                         </div>
                     </li>
 
+                    
 
                     <div class="contextParent">
                         <template v-for="context in publicInfo.SelectedAppContexts">
@@ -373,7 +374,8 @@ const logout = () => {
 
 .dropdownBg {
     background-color: #fff;
-
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 .dropdownBg li a {
