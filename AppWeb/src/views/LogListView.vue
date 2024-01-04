@@ -529,7 +529,7 @@ const showMore = async (isAuto: boolean) => {
                             <tbody>
                                 <template v-for="item, index in datas">
                                     <tr v-if="!onlyErr || (item.level == 4)">
-                                        <td :class="{ noborder: index == 0, err: item.level == 4 }">
+                                        <td :class="{ noborder: index == 0, err: item.level == 4 , war:item.level==3 }">
                                             <div class="info">
                                                 <div class="item">{{ showTime(item.timestamp) }}</div>
                                                 <div class="item app" v-if="showAppContext">{{ item.appContext }}</div>
@@ -652,6 +652,10 @@ a {
 
 table .err {
     color: #ef4836;
+}
+
+table .war{
+    color:#f39c12;
 }
 
 .info .item {
