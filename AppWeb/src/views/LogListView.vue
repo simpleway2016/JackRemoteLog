@@ -676,4 +676,9 @@ table .err {
 .table td {
     padding: 9px 15px;
 }
+
+.table td div{
+    width: 100%;
+    word-break: break-all;
+}
 </style>
