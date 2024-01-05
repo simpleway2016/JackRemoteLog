@@ -539,7 +539,7 @@ const showMore = async (isAuto: boolean) => {
                                             <div class="traceid tdc" @click="traceIdClick(item.traceId)" v-if="item.traceId">
                                                 TraceId: {{ item.traceId }}
                                             </div>
-                                            <div class="tdc" v-html="item.content"></div>
+                                            <div class="tdc" v-html="item.content.replace(/\n/g , '<br>')"></div>
                                         </td>
                                     </tr>
                                 </template>
