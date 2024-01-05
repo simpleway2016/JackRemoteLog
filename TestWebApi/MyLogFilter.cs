@@ -8,6 +8,10 @@ namespace TestWebApi
         public void OnExecuting(LogItem logItem)
         {
             logItem.TraceId = TrackId.Value;
+            if (logItem.TraceId != null)
+            {
+                logItem.TraceName = "TestMethod";
+            }
         }
     }
 }

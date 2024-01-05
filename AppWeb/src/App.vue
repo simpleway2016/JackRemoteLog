@@ -80,6 +80,15 @@ const addTraceId = () => {
     }
 }
 
+const addTraceName = () => {
+    var traceName = window.prompt("请输入TraceName", "");
+    if (traceName) {
+        if (publicInfo.SelectedTraceNames.some(x => x == traceName) == false) {
+            publicInfo.SelectedTraceNames.push(traceName);
+        }
+    }
+}
+
 const addSearchKey = () => {
     var key = window.prompt("请输入关键字", "");
     if (key) {
@@ -130,6 +139,14 @@ const cancelTraceId = (traceId:any) => {
         publicInfo.SelectedTraceIds.splice(index, 1);
     }
 }
+
+const cancelTraceName = (traceName:any) => {
+    var index = publicInfo.SelectedTraceNames.indexOf(traceName);
+    if (index >= 0) {
+        publicInfo.SelectedTraceNames.splice(index, 1);
+    }
+}
+
 const cancelSearchKey = (key:any) => {
     var index = publicInfo.SearchKeys.indexOf(key);
     if (index >= 0) {
@@ -212,6 +229,22 @@ const logout = () => {
                         <template v-for="traceid in publicInfo.SelectedTraceIds">
                             <i :title="'取消 ' + traceid" @click="cancelTraceId(traceid)" class="contextitem">{{
                                 traceid
+                            }}</i>
+                        </template>
+
+                    </div>
+                </ul>
+
+                <ul class="sidebar-panel nav">
+                    <li class="sidetitle">TraceNames
+                        <div class="dropdown link addbtn">
+                            <i @click="addTraceName" class="fa fa-plus"></i>
+                        </div>
+                    </li>
+                    <div class="contextParent">
+                        <template v-for="tracename in publicInfo.SelectedTraceNames">
+                            <i :title="'取消 ' + tracename" @click="cancelTraceName(tracename)" class="contextitem">{{
+                                tracename
                             }}</i>
                         </template>
 

@@ -20,6 +20,7 @@ export class GlobalInfo {
         SelectedAppContexts: <any[]>[],
         SelectedLevels: <any[]>[],
         SelectedTraceIds: <any[]>[],
+        SelectedTraceNames: <any[]>[],
         SearchKeys: <any[]>[]
     });
 

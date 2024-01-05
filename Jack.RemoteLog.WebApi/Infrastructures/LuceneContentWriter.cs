@@ -104,6 +104,11 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                                 doc.AddStringField("TraceId", writeLogModel.TraceId, Field.Store.YES);
                             }
 
+                            if (string.IsNullOrWhiteSpace(writeLogModel.TraceName) == false)
+                            {
+                                doc.AddStringField("TraceName", writeLogModel.TraceName, Field.Store.YES);
+                            }
+
                             //将解析完成的内容存储
                             try
                             {

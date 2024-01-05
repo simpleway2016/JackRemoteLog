@@ -221,6 +221,13 @@ const traceIdClick = (traceId: any) => {
     }
 }
 
+const traceNameClick = (traceName: any) => {
+    if (GlobalInfo.PublicInfo.SelectedTraceNames.some(x => x == traceName) == false) {
+        GlobalInfo.PublicInfo.SelectedTraceNames.push(traceName);
+        searchClick();
+    }
+}
+
 const checkIfAutoLoadMore = () => {
     if (autoLoadTimer) {
         window.clearTimeout(autoLoadTimer);
@@ -296,7 +303,8 @@ const searchClick = async () => {
                 Levels: GlobalInfo.PublicInfo.SelectedLevels.map(x => x.value),
                 End: endTimeStamp,
                 KeyWords: GlobalInfo.PublicInfo.SearchKeys,
-                TraceIds: GlobalInfo.PublicInfo.SelectedTraceIds
+                TraceIds: GlobalInfo.PublicInfo.SelectedTraceIds,
+                TraceNames: GlobalInfo.PublicInfo.SelectedTraceNames
             };
 
             var ret = JSON.parse(await GlobalInfo.postJson("Log/ReadLogs", param));
@@ -536,9 +544,11 @@ const showMore = async (isAuto: boolean) => {
                                                 <div class="item">{{ item.sourceContext }}</div>
                                                 <div class="item">[{{ showLevel(item.level) }}]</div>
                                             </div>
-                                            <div class="traceid tdc" @click="traceIdClick(item.traceId)" v-if="item.traceId">
-                                                TraceId: {{ item.traceId }}
+                                            <div class="traceid tdc"  v-if="item.traceName||item.traceId">
+                                                <span v-if="item.traceName">TraceName: <span class="tracebtn" @click="traceNameClick(item.traceName)">{{ item.traceName }}</span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                                <span v-if="item.traceId">TraceId: <span class="tracebtn" @click="traceIdClick(item.traceId)">{{ item.traceId }}</span></span>
                                             </div>
+                                           
                                             <div class="tdc" v-html="item.content.replace(/\n/g , '<br>')"></div>
                                         </td>
                                     </tr>
@@ -673,10 +683,11 @@ table .war{
 
 .traceid {
     color: rgb(21, 127, 92);
-    text-decoration: underline;
     cursor: pointer;
 }
-
+.tracebtn{
+    text-decoration: underline;
+}
 .table td {
     padding: 9px 15px;
 }

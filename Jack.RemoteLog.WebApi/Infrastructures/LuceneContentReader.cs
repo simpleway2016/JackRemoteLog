@@ -161,6 +161,24 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                         }
                     }
 
+                    if (body.TraceNames != null)
+                    {
+                        BooleanQuery traceBooleanClauses = new BooleanQuery();
+
+
+                        foreach (var traceName in body.TraceNames)
+                        {
+                            if (string.IsNullOrWhiteSpace(traceName))
+                                continue;
+
+                            traceBooleanClauses.Add(new TermQuery(new Term("TraceName", traceName)), Occur.SHOULD);
+                        }
+                        if (traceBooleanClauses.Clauses.Count > 0)
+                        {
+                            booleanClauses.Add(traceBooleanClauses, Occur.MUST);
+                        }
+                    }
+
                     List<string> words = null;
                     if (body.KeyWords != null)
                     {
@@ -201,7 +219,8 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                             Level = (Microsoft.Extensions.Logging.LogLevel)itemlevel,
                             SourceContext = _sourceContextReader.GetSourceContext(sourceContextId),
                             Timestamp = timestamp,
-                            TraceId = doc.Get("TraceId")
+                            TraceId = doc.Get("TraceId"),
+                            TraceName = doc.Get("TraceName"),
                         };
 
                         if (i == 0)

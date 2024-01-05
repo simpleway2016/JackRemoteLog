@@ -9,5 +9,6 @@
         public long? End { get; set; }
         public string[] KeyWords { get; set; }
         public string[] TraceIds { get; set; }
+        public string[] TraceNames { get; set; }
     }
 }
