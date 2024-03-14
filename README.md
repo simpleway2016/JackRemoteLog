@@ -30,4 +30,4 @@ Jack.RemoteLog.WebApi 是服务器端。
                 builder.UseJackRemoteLogger(configuration);
             });
 ```
-部署文档：[http://jms.jacktan.cn/#/doc/39/1](http://jms.jacktan.cn/#/doc/39/1)
+部署文档：[http://jms.jacktan.cn/#/doc/38/2](http://jms.jacktan.cn/#/doc/38/2)
