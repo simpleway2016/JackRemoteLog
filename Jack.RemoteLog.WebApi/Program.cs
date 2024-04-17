@@ -16,6 +16,8 @@ using Org.BouncyCastle.X509;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection.PortableExecutable;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 
 Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 ThreadPool.GetMinThreads(out int w, out int c);
@@ -67,6 +69,32 @@ if (!string.IsNullOrWhiteSpace(certPath))
     });
 }
 
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+builder.Services.AddResponseCompression(options =>
+{
+    //options.EnableForHttps = true;
+    // 添加br与gzip的Provider
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    // 扩展一些类型 (MimeTypes中有一些基本的类型,可以打断点看看)
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+    {
+                    "text/html; charset=utf-8",
+                    "application/xhtml+xml",
+                    "application/atom+xml",
+                    "image/svg+xml"
+                });
+});
+
 builder.Services.AddJmsTokenAspNetCore(null, new string[] { "Authorization" });
 
 // Add services to the container.
@@ -95,6 +123,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseResponseCompression();//这句话应该放在最上面，否则不起作用
+
 Global.ServiceProvider = app.Services;
 Global.UserInfos = app.Configuration.GetSection("Users").GetNewest<UserInfo[]>();
 
@@ -115,7 +145,7 @@ app.Use((context, next) =>
     bool iswriting = context.Request.Path.ToString().Contains("/WriteLog");
     if (iswriting)
     {
-        if (Global.UserInfos.Current == null || Global.UserInfos.Current.Any(m=>m.Writeable) == false)
+        if (Global.UserInfos.Current == null || Global.UserInfos.Current.Any(m => m.Writeable) == false)
         {
             pass = true;
         }
