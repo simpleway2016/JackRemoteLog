@@ -14,7 +14,7 @@ namespace Jack.RemoteLog.WebApi.Controllers
             var title = Global.Configuration["Title"];
             var htmlContent = System.IO.File.ReadAllText(path, Encoding.UTF8);
             if (!string.IsNullOrEmpty(title))
-                htmlContent = htmlContent.Replace("<title>Vela</title>", $"<title>{title}</title>");
+                htmlContent = htmlContent.Replace("<title>Remote Log Viewer</title>", $"<title>{title}</title>");
 
             return Content(htmlContent, "text/html");
         }
