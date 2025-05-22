@@ -40,7 +40,17 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
             _folderPath = folderPath;
             _logger = Global.ServiceProvider.GetService<ILogger<LuceneContentWriter>>();
             _writingQueue = new ConcurrentQueue<WriteLogModel>();
-            initIndexWriter();
+            try
+            {
+                initIndexWriter();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "索引文件损坏，将要删除文件夹重建");
+                System.IO.Directory.Delete(folderPath, true);
+                System.IO.Directory.CreateDirectory(folderPath);
+                initIndexWriter();
+            }
             
             new Thread(commitThread).Start();
         }
