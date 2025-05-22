@@ -50,6 +50,7 @@ namespace Jack.RemoteLog.WebApi.Infrastructures
                 System.IO.Directory.Delete(folderPath, true);
                 System.IO.Directory.CreateDirectory(folderPath);
                 initIndexWriter();
+
             }
             
             new Thread(commitThread).Start();
