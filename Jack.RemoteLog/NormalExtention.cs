@@ -24,6 +24,12 @@ namespace Microsoft.Extensions.Logging
         /// <param name="traceName"></param>
         public static void SetTraceInfo(this ILogger logger, string traceId,string traceName)
         {
+            if(traceId == null && traceName == null)
+            {
+                QueueLogger.TracingInfo.Value = null;
+                return;
+            }
+
             QueueLogger.TracingInfo.Value = new TraceInfo
             {
                 TraceId = traceId,
