@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Threading;
+using static Microsoft.Extensions.Logging.NormalExtention;
 
 namespace Jack.RemoteLog
 {
@@ -19,6 +20,7 @@ namespace Jack.RemoteLog
 
     class QueueLogger : Microsoft.Extensions.Logging.ILogger
     {
+        internal static AsyncLocal<TraceInfo> TracingInfo = new AsyncLocal<TraceInfo>();
         ILogItemFilter _logItemFilter;
         string _applicationContext;
 
@@ -86,29 +88,34 @@ namespace Jack.RemoteLog
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            //if (IsEnabled(logLevel))
+            string msg = state.ToString();
+            if (exception != null)
             {
-                string msg = state.ToString();
-                if (exception != null)
-                {
-                    if (string.IsNullOrEmpty(msg))
-                        msg = exception.ToString();
-                    else
-                        msg = $"{msg}\r\n{exception.ToString()}";
-                }
-
-                var logitem = new LogItem
-                {
-                    Level = logLevel,
-                    Content = msg,
-                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    SourceContext = _categoryName,
-                    ApplicationContext = _applicationContext
-                };
-                _logItemFilter?.OnExecuting(logitem);
-                Queue.Enqueue(logitem);
-                WaitEvent.Set();
+                if (string.IsNullOrEmpty(msg))
+                    msg = exception.ToString();
+                else
+                    msg = $"{msg}\r\n{exception.ToString()}";
             }
+
+            var logitem = new LogItem
+            {
+                Level = logLevel,
+                Content = msg,
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                SourceContext = _categoryName,
+                ApplicationContext = _applicationContext
+            };
+
+            var traceInfo = TracingInfo.Value;
+            if (traceInfo != null)
+            {
+                logitem.TraceId = traceInfo.TraceId;
+                logitem.TraceName = traceInfo.TraceName;
+            }
+
+            _logItemFilter?.OnExecuting(logitem);
+            Queue.Enqueue(logitem);
+            WaitEvent.Set();
         }
     }
 
